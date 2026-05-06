@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Log — The Ledger</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div class="container admin-container">
+    <header>
+      <h1>Log Entry</h1>
+      <a href="/" class="back-link">← back to calendar</a>
+    </header>
+    <main>
+      <form id="log-form">
+        <div class="form-group">
+          <label for="password">Password</label>
+          <input type="password" id="password" required autocomplete="current-password">
+        </div>
+        <div class="form-group">
+          <label for="date">Date</label>
+          <input type="date" id="date" required>
+        </div>
+        <div class="form-group">
+          <label>Status</label>
+          <div class="radio-group">
+            <label class="radio-label clean-label">
+              <input type="radio" name="status" value="clean" checked>
+              Clean
+            </label>
+            <label class="radio-label folded-label">
+              <input type="radio" name="status" value="folded">
+              Folded
+            </label>
+            <label class="radio-label remove-label">
+              <input type="radio" name="status" value="remove">
+              Remove entry
+            </label>
+          </div>
+        </div>
+        <button type="submit" id="submit-btn">Submit</button>
+        <p id="result-msg" class="result-msg"></p>
+      </form>
+    </main>
+  </div>
+  <script src="admin.js"></script>
+</body>
+</html>
