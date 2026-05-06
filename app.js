@@ -1,7 +1,8 @@
 const MONTH_NAMES = ['January','February','March','April','May','June',
   'July','August','September','October','November','December']
 const DAY_HEADERS = ['Su','Mo','Tu','We','Th','Fr','Sa']
-const START_DATE = new Date(2026, 4, 4) // May 4, 2026
+const START_DATE = new Date(2026, 2, 16) // March 16, 2026
+
 
 function formatDate(d) {
   const y = d.getFullYear()
@@ -82,8 +83,9 @@ function renderMonth(year, month, todayStr, entryMap, today) {
     const cell = document.createElement('div')
     cell.className = 'day-cell'
 
-    if (isBeforeStart || isFuture) {
-      cell.classList.add('empty')
+    if (isBeforeStart || isFuture || isToday) {
+      const entry = entryMap[dateStr]
+      cell.classList.add(entry && entry.folded ? 'folded' : 'empty')
     } else {
       const entry = entryMap[dateStr]
       cell.classList.add(entry && entry.folded ? 'folded' : 'clean')
@@ -122,10 +124,10 @@ async function init() {
   const entryMap = {}
   for (const e of entries) entryMap[e.date] = e
 
-  const foldedCount = entries.filter(e => e.folded).length
-  const totalDays = Math.floor((today - START_DATE) / 864e5) + 1
+  const pastDays = Math.floor((today - START_DATE) / 864e5) // excludes today (still pending)
+  const foldedCount = Object.values(entryMap).filter(e => e.folded && e.date !== todayStr).length
   document.getElementById('total-folded').textContent = foldedCount
-  document.getElementById('total-clean').textContent = totalDays - foldedCount
+  document.getElementById('total-clean').textContent = pastDays - foldedCount
   document.getElementById('current-streak').textContent = calcCurrentStreak(entryMap, today)
   document.getElementById('longest-streak').textContent = calcLongestStreak(entryMap, today)
 
