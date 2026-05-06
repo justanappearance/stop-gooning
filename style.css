@@ -162,6 +162,7 @@ h1 {
 .day-cell.start.folded { background: var(--red); }
 .day-cell.future { background: transparent; }
 .day-cell.empty { background: transparent; }
+.day-cell.start.empty { background: var(--blue); }
 
 .day-cell.today {
   outline: 2px solid #fff;
