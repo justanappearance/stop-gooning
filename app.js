@@ -55,7 +55,7 @@ function renderMonth(year, month, todayStr, entryMap, today) {
 
   const nameEl = document.createElement('div')
   nameEl.className = 'month-name'
-  nameEl.textContent = MONTH_NAMES[month]
+  nameEl.textContent = `${MONTH_NAMES[month]} ${year}`
   monthEl.appendChild(nameEl)
 
   const headersEl = document.createElement('div')
@@ -96,6 +96,7 @@ function renderMonth(year, month, todayStr, entryMap, today) {
     }
 
     if (isToday) cell.classList.add('today')
+    if (dateStr === formatDate(STATS_START_DATE)) cell.classList.add('start')
 
     const num = document.createElement('span')
     num.className = 'day-number'

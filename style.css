@@ -7,6 +7,7 @@
   --green: #22c55e;
   --red: #ef4444;
   --gray: #334155;
+  --blue: #3b82f6;
 }
 
 * {
@@ -98,6 +99,7 @@ h1 {
   flex-shrink: 0;
 }
 
+.dot.start { background: var(--blue); }
 .dot.clean { background: var(--green); }
 .dot.folded { background: var(--red); }
 .dot.unknown { background: var(--gray); }
@@ -156,6 +158,8 @@ h1 {
 
 .day-cell.clean { background: var(--green); }
 .day-cell.folded { background: var(--red); }
+.day-cell.start { background: var(--blue); }
+.day-cell.start.folded { background: var(--red); }
 .day-cell.future { background: transparent; }
 .day-cell.empty { background: transparent; }
 
