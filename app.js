@@ -1,6 +1,7 @@
 const MONTH_NAMES = ['January','February','March','April','May','June',
   'July','August','September','October','November','December']
 const DAY_HEADERS = ['Su','Mo','Tu','We','Th','Fr','Sa']
+const START_DATE = new Date(2026, 4, 4) // May 4, 2026
 
 function formatDate(d) {
   const y = d.getFullYear()
@@ -9,76 +10,7 @@ function formatDate(d) {
   return `${y}-${m}-${day}`
 }
 
-function parseLocalDate(dateStr) {
-  const [y, m, d] = dateStr.split('-').map(Number)
-  return new Date(y, m - 1, d)
-}
-
-function calcCurrentStreak(entries, entryMap) {
-  const today = new Date()
-  today.setHours(0, 0, 0, 0)
-
-  const d = new Date(today)
-  const todayStr = formatDate(d)
-
-  // If today isn't logged yet, start counting from yesterday
-  if (!entryMap[todayStr]) {
-    d.setDate(d.getDate() - 1)
-  }
-
-  let streak = 0
-  for (let i = 0; i < 366; i++) {
-    const dateStr = formatDate(d)
-    const entry = entryMap[dateStr]
-    if (!entry || entry.folded) break
-    streak++
-    d.setDate(d.getDate() - 1)
-  }
-
-  return streak
-}
-
-function calcLongestStreak(entries) {
-  const sorted = [...entries].sort((a, b) => a.date.localeCompare(b.date))
-
-  let longest = 0
-  let current = 0
-  let lastCleanDate = null
-
-  for (const entry of sorted) {
-    if (entry.folded) {
-      if (current > longest) longest = current
-      current = 0
-      lastCleanDate = null
-    } else {
-      if (lastCleanDate !== null) {
-        const prev = parseLocalDate(lastCleanDate)
-        const curr = parseLocalDate(entry.date)
-        const diff = (curr - prev) / 864e5
-        if (diff > 1) {
-          if (current > longest) longest = current
-          current = 0
-        }
-      }
-      current++
-      lastCleanDate = entry.date
-    }
-  }
-
-  return Math.max(longest, current)
-}
-
-function renderStats(entries, entryMap) {
-  const clean = entries.filter(e => !e.folded)
-  const folded = entries.filter(e => e.folded)
-
-  document.getElementById('total-clean').textContent = clean.length
-  document.getElementById('total-folded').textContent = folded.length
-  document.getElementById('current-streak').textContent = calcCurrentStreak(entries, entryMap)
-  document.getElementById('longest-streak').textContent = calcLongestStreak(entries)
-}
-
-function renderMonth(year, month, todayStr, entryMap) {
+function renderMonth(year, month, todayStr, entryMap, today) {
   const firstDay = new Date(year, month, 1)
   const daysInMonth = new Date(year, month + 1, 0).getDate()
   const startDow = firstDay.getDay()
@@ -110,25 +42,21 @@ function renderMonth(year, month, todayStr, entryMap) {
     gridEl.appendChild(blank)
   }
 
-  const today = new Date()
-  today.setHours(0, 0, 0, 0)
-
   for (let day = 1; day <= daysInMonth; day++) {
     const date = new Date(year, month, day)
     const dateStr = formatDate(date)
     const isFuture = date > today
+    const isBeforeStart = date < START_DATE
     const isToday = dateStr === todayStr
 
     const cell = document.createElement('div')
     cell.className = 'day-cell'
 
-    if (isFuture) {
-      cell.classList.add('future')
+    if (isBeforeStart || isFuture) {
+      cell.classList.add('empty')
     } else {
       const entry = entryMap[dateStr]
-      if (entry) {
-        cell.classList.add(entry.folded ? 'folded' : 'clean')
-      }
+      cell.classList.add(entry && entry.folded ? 'folded' : 'clean')
     }
 
     if (isToday) cell.classList.add('today')
@@ -160,17 +88,16 @@ async function init() {
   const entryMap = {}
   for (const e of entries) entryMap[e.date] = e
 
-  renderStats(entries, entryMap)
+  document.getElementById('total-folded').textContent = entries.filter(e => e.folded).length
 
   calendar.innerHTML = ''
 
   const today = new Date()
   today.setHours(0, 0, 0, 0)
   const todayStr = formatDate(today)
-  const year = today.getFullYear()
 
-  for (let month = 0; month <= today.getMonth(); month++) {
-    calendar.appendChild(renderMonth(year, month, todayStr, entryMap))
+  for (let month = START_DATE.getMonth(); month <= today.getMonth(); month++) {
+    calendar.appendChild(renderMonth(today.getFullYear(), month, todayStr, entryMap, today))
   }
 }
 
