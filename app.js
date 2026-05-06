@@ -115,6 +115,10 @@ async function init() {
     console.error('Failed to load entries', e)
   }
 
+  const today = new Date()
+  today.setHours(0, 0, 0, 0)
+  const todayStr = formatDate(today)
+
   const entryMap = {}
   for (const e of entries) entryMap[e.date] = e
 
@@ -126,10 +130,6 @@ async function init() {
   document.getElementById('longest-streak').textContent = calcLongestStreak(entryMap, today)
 
   calendar.innerHTML = ''
-
-  const today = new Date()
-  today.setHours(0, 0, 0, 0)
-  const todayStr = formatDate(today)
 
   for (let month = START_DATE.getMonth(); month <= today.getMonth(); month++) {
     calendar.appendChild(renderMonth(today.getFullYear(), month, todayStr, entryMap, today))
