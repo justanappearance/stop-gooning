@@ -2,6 +2,7 @@ const MONTH_NAMES = ['January','February','March','April','May','June',
   'July','August','September','October','November','December']
 const DAY_HEADERS = ['Su','Mo','Tu','We','Th','Fr','Sa']
 const START_DATE = new Date(2026, 2, 16) // March 16, 2026
+const STATS_START_DATE = new Date(2026, 4, 6) // May 6, 2026
 
 
 function formatDate(d) {
@@ -13,9 +14,10 @@ function formatDate(d) {
 
 function calcCurrentStreak(entryMap, today) {
   const d = new Date(today)
+  d.setDate(d.getDate() - 1) // start from yesterday since today is pending
   let streak = 0
   for (let i = 0; i < 366; i++) {
-    if (d < START_DATE) break
+    if (d < STATS_START_DATE) break
     const entry = entryMap[formatDate(d)]
     if (entry && entry.folded) break
     streak++
@@ -25,10 +27,12 @@ function calcCurrentStreak(entryMap, today) {
 }
 
 function calcLongestStreak(entryMap, today) {
-  const d = new Date(START_DATE)
+  const d = new Date(STATS_START_DATE)
+  const yesterday = new Date(today)
+  yesterday.setDate(yesterday.getDate() - 1)
   let longest = 0
   let current = 0
-  while (d <= today) {
+  while (d <= yesterday) {
     const entry = entryMap[formatDate(d)]
     if (entry && entry.folded) {
       if (current > longest) longest = current
@@ -124,8 +128,8 @@ async function init() {
   const entryMap = {}
   for (const e of entries) entryMap[e.date] = e
 
-  const pastDays = Math.floor((today - START_DATE) / 864e5) // excludes today (still pending)
-  const foldedCount = Object.values(entryMap).filter(e => e.folded && e.date !== todayStr).length
+  const pastDays = Math.floor((today - STATS_START_DATE) / 864e5) // excludes today (still pending)
+  const foldedCount = Object.values(entryMap).filter(e => e.folded && e.date !== todayStr && e.date >= formatDate(STATS_START_DATE)).length
   document.getElementById('total-folded').textContent = foldedCount
   document.getElementById('total-clean').textContent = pastDays - foldedCount
   document.getElementById('current-streak').textContent = calcCurrentStreak(entryMap, today)
