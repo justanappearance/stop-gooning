@@ -10,6 +10,36 @@ function formatDate(d) {
   return `${y}-${m}-${day}`
 }
 
+function calcCurrentStreak(entryMap, today) {
+  const d = new Date(today)
+  let streak = 0
+  for (let i = 0; i < 366; i++) {
+    if (d < START_DATE) break
+    const entry = entryMap[formatDate(d)]
+    if (entry && entry.folded) break
+    streak++
+    d.setDate(d.getDate() - 1)
+  }
+  return streak
+}
+
+function calcLongestStreak(entryMap, today) {
+  const d = new Date(START_DATE)
+  let longest = 0
+  let current = 0
+  while (d <= today) {
+    const entry = entryMap[formatDate(d)]
+    if (entry && entry.folded) {
+      if (current > longest) longest = current
+      current = 0
+    } else {
+      current++
+    }
+    d.setDate(d.getDate() + 1)
+  }
+  return Math.max(longest, current)
+}
+
 function renderMonth(year, month, todayStr, entryMap, today) {
   const firstDay = new Date(year, month, 1)
   const daysInMonth = new Date(year, month + 1, 0).getDate()
@@ -88,7 +118,12 @@ async function init() {
   const entryMap = {}
   for (const e of entries) entryMap[e.date] = e
 
-  document.getElementById('total-folded').textContent = entries.filter(e => e.folded).length
+  const foldedCount = entries.filter(e => e.folded).length
+  const totalDays = Math.floor((today - START_DATE) / 864e5) + 1
+  document.getElementById('total-folded').textContent = foldedCount
+  document.getElementById('total-clean').textContent = totalDays - foldedCount
+  document.getElementById('current-streak').textContent = calcCurrentStreak(entryMap, today)
+  document.getElementById('longest-streak').textContent = calcLongestStreak(entryMap, today)
 
   calendar.innerHTML = ''
 
