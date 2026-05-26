@@ -99,7 +99,7 @@ function renderMonth(year, month, todayStr, entryMap, today) {
       const isPreChallenge = date < STATS_START_DATE
       if (entry && entry.folded) cell.classList.add('folded')
       else if (entry && entry.almost) cell.classList.add('almost')
-      else if (isPreChallenge) cell.classList.add('empty')
+      else if (isPreChallenge) cell.classList.add('clean')
       else cell.classList.add('clean')
     }
 
