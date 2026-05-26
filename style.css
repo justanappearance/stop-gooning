@@ -8,6 +8,7 @@
   --red: #ef4444;
   --gray: #334155;
   --blue: #3b82f6;
+  --orange: #f97316;
 }
 
 * {
@@ -101,6 +102,7 @@ h1 {
 
 .dot.start { background: var(--blue); }
 .dot.clean { background: var(--green); }
+.dot.almost { background: var(--orange); }
 .dot.folded { background: var(--red); }
 .dot.unknown { background: var(--gray); }
 
@@ -157,6 +159,7 @@ h1 {
 }
 
 .day-cell.clean { background: var(--green); }
+.day-cell.almost { background: var(--orange); }
 .day-cell.folded { background: var(--red); }
 .day-cell.start { background: var(--blue); }
 .day-cell.start.folded { background: var(--red); }
@@ -180,6 +183,7 @@ h1 {
 }
 
 .day-cell.clean .day-number,
+.day-cell.almost .day-number,
 .day-cell.folded .day-number {
   color: rgba(255, 255, 255, 0.65);
 }
@@ -268,6 +272,7 @@ input[type="date"]:focus {
 }
 
 .radio-label.clean-label:has(input:checked) { border-color: var(--green); }
+.radio-label.almost-label:has(input:checked) { border-color: var(--orange); }
 .radio-label.folded-label:has(input:checked) { border-color: var(--red); }
 
 .radio-label input { display: none; }

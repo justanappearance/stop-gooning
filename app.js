@@ -87,12 +87,20 @@ function renderMonth(year, month, todayStr, entryMap, today) {
     const cell = document.createElement('div')
     cell.className = 'day-cell'
 
-    if (isBeforeStart || isFuture || isToday) {
+    if (isBeforeStart || isFuture) {
+      cell.classList.add('empty')
+    } else if (isToday) {
       const entry = entryMap[dateStr]
-      cell.classList.add(entry && entry.folded ? 'folded' : 'empty')
+      if (entry && entry.folded) cell.classList.add('folded')
+      else if (entry && entry.almost) cell.classList.add('almost')
+      else cell.classList.add('empty')
     } else {
       const entry = entryMap[dateStr]
-      cell.classList.add(entry && entry.folded ? 'folded' : 'clean')
+      const isPreChallenge = date < STATS_START_DATE
+      if (entry && entry.folded) cell.classList.add('folded')
+      else if (entry && entry.almost) cell.classList.add('almost')
+      else if (isPreChallenge) cell.classList.add('folded')
+      else cell.classList.add('clean')
     }
 
     if (isToday) cell.classList.add('today')

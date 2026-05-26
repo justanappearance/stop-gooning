@@ -3,7 +3,7 @@ export default async function handler(req, res) {
     return res.status(405).json({ error: 'Method not allowed' })
   }
 
-  const { password, date, folded, action } = req.body
+  const { password, date, folded, almost, action } = req.body
 
   if (!password || password !== process.env.ADMIN_PASSWORD) {
     return res.status(401).json({ error: 'Wrong password' })
@@ -30,7 +30,7 @@ export default async function handler(req, res) {
     const r = await fetch(base, {
       method: 'POST',
       headers: { ...headers, Prefer: 'resolution=merge-duplicates' },
-      body: JSON.stringify({ date, folded: folded === true }),
+      body: JSON.stringify({ date, folded: folded === true, almost: almost === true }),
     })
     if (!r.ok) return res.status(500).json({ error: 'Database error' })
   }

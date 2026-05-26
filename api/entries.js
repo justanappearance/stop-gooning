@@ -4,7 +4,7 @@ export default async function handler(req, res) {
   }
 
   const resp = await fetch(
-    `${process.env.SUPABASE_URL}/rest/v1/entries?select=date,folded&order=date.asc`,
+    `${process.env.SUPABASE_URL}/rest/v1/entries?select=date,folded,almost&order=date.asc`,
     {
       headers: {
         apikey: process.env.SUPABASE_SERVICE_ROLE_KEY,

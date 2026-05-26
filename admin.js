@@ -28,6 +28,7 @@ document.getElementById('log-form').addEventListener('submit', async (e) => {
       body.action = 'delete'
     } else {
       body.folded = status === 'folded'
+      body.almost = status === 'almost'
     }
 
     const resp = await fetch('/api/log', {
@@ -42,6 +43,7 @@ document.getElementById('log-form').addEventListener('submit', async (e) => {
       msg.className = 'result-msg success'
       if (status === 'remove') msg.textContent = 'Entry removed.'
       else if (status === 'folded') msg.textContent = 'Logged. You folded.'
+      else if (status === 'almost') msg.textContent = 'Logged. Close call.'
       else msg.textContent = 'Logged. Held strong.'
     } else {
       msg.className = 'result-msg error'
