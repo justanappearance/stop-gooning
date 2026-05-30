@@ -42,7 +42,7 @@ document.getElementById('log-form').addEventListener('submit', async (e) => {
     if (resp.ok) {
       msg.className = 'result-msg success'
       if (status === 'remove') msg.textContent = 'Entry removed.'
-      else if (status === 'folded') msg.textContent = 'Logged. You folded.'
+      else if (status === 'folded') msg.textContent = 'Logged. You gooned.'
       else if (status === 'almost') msg.textContent = 'Logged. Close call.'
       else msg.textContent = 'Logged. Held strong.'
     } else {
