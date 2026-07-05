@@ -1,5 +1,8 @@
 {
   "buildCommand": "",
   "outputDirectory": ".",
-  "framework": null
+  "framework": null,
+  "crons": [
+    { "path": "/api/keepalive", "schedule": "0 0 * * *" }
+  ]
 }
