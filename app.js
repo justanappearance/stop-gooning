@@ -1,8 +1,7 @@
 const MONTH_NAMES = ['January','February','March','April','May','June',
   'July','August','September','October','November','December']
 const DAY_HEADERS = ['Su','Mo','Tu','We','Th','Fr','Sa']
-const START_DATE = new Date(2026, 2, 16) // March 16, 2026
-const STATS_START_DATE = new Date(2026, 4, 6) // May 6, 2026
+const START_DATE = new Date(2026, 4, 6) // May 6, 2026
 
 
 function formatDate(d) {
@@ -17,7 +16,7 @@ function calcCurrentStreak(entryMap, today) {
   d.setDate(d.getDate() - 1) // start from yesterday since today is pending
   let streak = 0
   for (let i = 0; i < 366; i++) {
-    if (d < STATS_START_DATE) break
+    if (d < START_DATE) break
     const entry = entryMap[formatDate(d)]
     if (entry && entry.folded) break
     streak++
@@ -27,7 +26,7 @@ function calcCurrentStreak(entryMap, today) {
 }
 
 function calcLongestStreak(entryMap, today) {
-  const d = new Date(STATS_START_DATE)
+  const d = new Date(START_DATE)
   const yesterday = new Date(today)
   yesterday.setDate(yesterday.getDate() - 1)
   let longest = 0
@@ -96,15 +95,13 @@ function renderMonth(year, month, todayStr, entryMap, today) {
       else cell.classList.add('empty')
     } else {
       const entry = entryMap[dateStr]
-      const isPreChallenge = date < STATS_START_DATE
       if (entry && entry.folded) cell.classList.add('folded')
       else if (entry && entry.almost) cell.classList.add('almost')
-      else if (isPreChallenge) cell.classList.add('clean')
       else cell.classList.add('clean')
     }
 
     if (isToday) cell.classList.add('today')
-    if (dateStr === formatDate(STATS_START_DATE)) cell.classList.add('start')
+    if (dateStr === formatDate(START_DATE)) cell.classList.add('start')
 
     const num = document.createElement('span')
     num.className = 'day-number'
@@ -137,8 +134,8 @@ async function init() {
   const entryMap = {}
   for (const e of entries) entryMap[e.date] = e
 
-  const pastDays = Math.floor((today - STATS_START_DATE) / 864e5) // excludes today (still pending)
-  const foldedCount = Object.values(entryMap).filter(e => e.folded && e.date !== todayStr && e.date >= formatDate(STATS_START_DATE)).length
+  const pastDays = Math.floor((today - START_DATE) / 864e5) // excludes today (still pending)
+  const foldedCount = Object.values(entryMap).filter(e => e.folded && e.date !== todayStr && e.date >= formatDate(START_DATE)).length
   document.getElementById('total-folded').textContent = foldedCount
   document.getElementById('total-clean').textContent = pastDays - foldedCount
   document.getElementById('current-streak').textContent = calcCurrentStreak(entryMap, today)
