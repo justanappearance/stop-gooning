@@ -19,9 +19,9 @@ const CALENDAR_START = GOONING_START
 // share one marker; hovering a day names it (Mike, 2026-11-12: no color per event).
 const EVENTS = [
   { label: 'Yellowstone', start: '2026-05-22', end: '2026-05-25' },
-  { label: 'Guatemala with friends', start: '2026-06-10', end: '2026-06-14' },
+  { label: "Cheef's Wedding", start: '2026-06-10', end: '2026-06-14' },
   { label: 'break after injury', start: '2026-07-16', end: '2026-07-27', tabs: ['lifting'] },
-  { label: "Denver, sister's engagement", start: '2026-09-26', end: '2026-09-27' },
+  { label: "Tam's Engagement", start: '2026-09-26', end: '2026-09-27' },
 ]
 
 // Chart time frames; "all" starts at the chart's own first day.
