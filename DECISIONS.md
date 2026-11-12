@@ -110,3 +110,11 @@
 - Why: Mike, 2026-11-12: the browser's tooltip was slow and plain, and the bright phase of the pulse
   washed the colors out.
 - Date: 2026-11-12
+
+## Chart hover shows the nearest day's numbers
+- Decision: moving the mouse over a chart snaps to the nearest day, marks it with a dot (and one on
+  the 7-day average line for weight) and shows "date: value · 7-day avg" in the page tooltip. Same
+  for the lifting bars. SVG `<title>` tooltips removed.
+- Why: Mike, 2026-11-12: wanted the numbers to pop up on hover. Snapping to the nearest day means
+  he doesn't have to hit a 3px dot or the thin line exactly.
+- Date: 2026-11-12

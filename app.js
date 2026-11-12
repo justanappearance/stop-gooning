@@ -161,7 +161,7 @@ function renderChart({ points, from, kind, yMin, yMax, formatY, trend = [] }) {
   if (kind === 'bar') {
     for (const p of visible) {
       if (!p.value) continue
-      parts.push(`<rect class="bar" x="${x(p.date) - barWidth / 2}" y="${y(p.value)}" width="${barWidth}" height="${y(yMin) - y(p.value)}"><title>${shortDate(p.date)}: ${formatY(p.value)}</title></rect>`)
+      parts.push(`<rect class="bar" x="${x(p.date) - barWidth / 2}" y="${y(p.value)}" width="${barWidth}" height="${y(yMin) - y(p.value)}"/>`)
     }
   } else {
     parts.push(`<polyline class="line${trend.length ? ' faint' : ''}" points="${visible.map(p => `${x(p.date)},${y(p.value)}`).join(' ')}"/>`)
@@ -170,10 +170,40 @@ function renderChart({ points, from, kind, yMin, yMax, formatY, trend = [] }) {
       parts.push(`<polyline class="trend" points="${trendVisible.map(p => `${x(p.date)},${y(p.value)}`).join(' ')}"/>`)
     }
     for (const p of visible) {
-      parts.push(`<circle class="point" cx="${x(p.date)}" cy="${y(p.value)}" r="3"><title>${shortDate(p.date)}: ${formatY(p.value)}</title></circle>`)
+      parts.push(`<circle class="point" cx="${x(p.date)}" cy="${y(p.value)}" r="3"/>`)
     }
   }
-  document.getElementById('chart').innerHTML = `<svg viewBox="0 0 ${W} ${H}" role="img">${parts.join('')}</svg>`
+  parts.push('<circle class="hover-dot" r="5" visibility="hidden"/><circle class="hover-dot trend-dot" r="5" visibility="hidden"/>')
+  const chart = document.getElementById('chart')
+  chart.innerHTML = `<svg viewBox="0 0 ${W} ${H}" role="img">${parts.join('')}</svg>`
+
+  // Hovering anywhere over the chart picks the nearest day and shows its numbers in the page
+  // tooltip (Mike, 2026-11-12), so a point or the average line doesn't need to be hit exactly.
+  const svg = chart.querySelector('svg')
+  const [dot, trendDot] = svg.querySelectorAll('.hover-dot')
+  const trendByTime = new Map(trend.map(p => [p.date.getTime(), p.value]))
+  svg.onmousemove = e => {
+    if (!visible.length) return
+    const at = new DOMPoint(e.clientX, e.clientY).matrixTransform(svg.getScreenCTM().inverse())
+    const near = visible.reduce((best, p) => Math.abs(x(p.date) - at.x) < Math.abs(x(best.date) - at.x) ? p : best)
+    const avg = trendByTime.get(near.date.getTime())
+    dot.setAttribute('cx', x(near.date))
+    dot.setAttribute('cy', y(near.value))
+    dot.setAttribute('visibility', 'visible')
+    trendDot.setAttribute('visibility', avg === undefined ? 'hidden' : 'visible')
+    if (avg !== undefined) {
+      trendDot.setAttribute('cx', x(near.date))
+      trendDot.setAttribute('cy', y(avg))
+    }
+    const label = `${shortDate(near.date)}: ${formatY(near.value)}` +
+      (avg === undefined ? '' : ` · 7-day avg ${formatY(avg)}`)
+    showTooltip(label, (avg === undefined ? dot : (avg > near.value ? trendDot : dot)).getBoundingClientRect())
+  }
+  svg.onmouseleave = () => {
+    dot.setAttribute('visibility', 'hidden')
+    trendDot.setAttribute('visibility', 'hidden')
+    tooltip.hidden = true
+  }
 }
 
 // Average of the weigh-ins in the `days` days up to and including each one - daily weight swings
@@ -399,10 +429,14 @@ function hoverDay(e, on) {
       day.classList.toggle('event-hover', on)
     }
   }
-  tooltip.hidden = !(on && cell.dataset.tip)
-  if (tooltip.hidden) return
-  tooltip.textContent = cell.dataset.tip
-  const box = cell.getBoundingClientRect()
+  if (on && cell.dataset.tip) showTooltip(cell.dataset.tip, cell.getBoundingClientRect())
+  else tooltip.hidden = true
+}
+
+// Shows the page tooltip centered just above `box` (a getBoundingClientRect), kept on screen.
+function showTooltip(text, box) {
+  tooltip.textContent = text
+  tooltip.hidden = false
   const left = Math.min(Math.max(8, box.left + box.width / 2 - tooltip.offsetWidth / 2),
     document.documentElement.clientWidth - tooltip.offsetWidth - 8)
   tooltip.style.left = `${left + window.scrollX}px`
