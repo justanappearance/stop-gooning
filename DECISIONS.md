@@ -74,3 +74,12 @@
   the same day.
 - Why: Mike, 2026-11-12: a new color per event was too much; hovering is enough.
 - Date: 2026-11-12
+
+## Weight graph shows a 7-day average line
+- Decision: the weight chart draws each weigh-in as a dot on a faint line, plus a solid white line
+  of the average of the weigh-ins in the 7 days up to each one (`rollingAverage` in app.js).
+- Why: Mike, 2026-11-12, wanted a line showing his overall direction. Day-to-day weight swings on
+  water alone, so an average shows the trend better than the raw points.
+- Rejected: a straight line from his first to latest weigh-in.
+- Why rejected: it hides everything in between, and changes meaning with the range buttons.
+- Date: 2026-11-12

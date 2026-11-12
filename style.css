@@ -136,6 +136,9 @@ h1 {
 .chart .bar { fill: var(--green); }
 .chart .line { fill: none; stroke: var(--green); stroke-width: 2; }
 .chart .point { fill: var(--green); }
+.chart .line.faint { stroke-opacity: 0.35; stroke-width: 1.5; }
+.chart .trend { fill: none; stroke: var(--text); stroke-width: 2.5; }
+.chart-note { color: var(--text-muted); font-size: 0.8rem; text-align: right; margin-top: -0.9rem; }
 
 /* Stats */
 .stats {

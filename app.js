@@ -130,8 +130,9 @@ function renderCalendar({ tab, start, markers, cellClass }) {
 
 // ---- Chart ----
 
-// One SVG for both chart types, over [from, today]. points: [{ date: Date, value }].
-function renderChart({ points, from, kind, yMin, yMax, formatY }) {
+// One SVG for both chart types, over [from, today]. points: [{ date: Date, value }]; `trend`
+// (same shape, optional) is drawn as a solid line over a line chart's faint day-to-day one.
+function renderChart({ points, from, kind, yMin, yMax, formatY, trend = [] }) {
   const W = 900, H = 260, left = 44, right = 12, top = 12, bottom = 28
   const last = startOfToday()
   const span = Math.max(1, Math.round((last - from) / 864e5))
@@ -161,12 +162,25 @@ function renderChart({ points, from, kind, yMin, yMax, formatY }) {
       parts.push(`<rect class="bar" x="${x(p.date) - barWidth / 2}" y="${y(p.value)}" width="${barWidth}" height="${y(yMin) - y(p.value)}"><title>${shortDate(p.date)}: ${formatY(p.value)}</title></rect>`)
     }
   } else {
-    parts.push(`<polyline class="line" points="${visible.map(p => `${x(p.date)},${y(p.value)}`).join(' ')}"/>`)
+    parts.push(`<polyline class="line${trend.length ? ' faint' : ''}" points="${visible.map(p => `${x(p.date)},${y(p.value)}`).join(' ')}"/>`)
+    const trendVisible = trend.filter(p => p.date >= from)
+    if (trendVisible.length) {
+      parts.push(`<polyline class="trend" points="${trendVisible.map(p => `${x(p.date)},${y(p.value)}`).join(' ')}"/>`)
+    }
     for (const p of visible) {
       parts.push(`<circle class="point" cx="${x(p.date)}" cy="${y(p.value)}" r="3"><title>${shortDate(p.date)}: ${formatY(p.value)}</title></circle>`)
     }
   }
   document.getElementById('chart').innerHTML = `<svg viewBox="0 0 ${W} ${H}" role="img">${parts.join('')}</svg>`
+}
+
+// Average of the weigh-ins in the `days` days up to and including each one - daily weight swings
+// a pound or two on water alone, so this is what shows the real direction (Mike, 2026-11-12).
+function rollingAverage(points, days) {
+  return points.map(p => {
+    const window = points.filter(q => q.date <= p.date && q.date > daysBefore(p.date, days))
+    return { date: p.date, value: window.reduce((sum, q) => sum + q.value, 0) / window.length }
+  })
 }
 
 // Range buttons under the chart; draw(from) redraws it for the chosen time frame.
@@ -309,11 +323,13 @@ const weight = {
     setStat(panel, 'month', signed(changeOver(30)))
     setStat(panel, 'entries', points.length)
 
+    const trend = rollingAverage(points, 7)
+    document.getElementById('chart-note').textContent = 'dots: weigh-ins · line: 7-day average'
     renderRangeTabs(points[0].date, from => {
       const values = points.filter(p => p.date >= from).map(p => p.value)
       if (!values.length) values.push(latest.value)
       renderChart({
-        points, from, kind: 'line',
+        points, from, kind: 'line', trend,
         yMin: Math.floor(Math.min(...values) - 1), yMax: Math.ceil(Math.max(...values) + 1),
         formatY: v => `${Number(v.toFixed(1))}`,
       })
@@ -350,6 +366,7 @@ async function showTab() {
   document.getElementById('calendar').hidden = Boolean(tracker.chartOnly)
   document.getElementById('events-legend').hidden = Boolean(tracker.chartOnly)
   document.getElementById('chart-block').hidden = name !== 'lifting' && name !== 'weight'
+  document.getElementById('chart-note').textContent = ''
 
   loads[name] ??= tracker.load()
   const data = await loads[name]
