@@ -1,37 +1,22 @@
+import { ENERGY_TRACKER_ID, queryAll, rowDate } from '../lib/notion.js'
+
 // Marks a day as folded for every row of Mike's Notion "Energy Tracker" whose Activities include
 // "Masturbated". Only ever adds folded days, never clears them: Mike doesn't un-log days in Notion,
 // and a Notion outage or mistake shouldn't be able to wipe the site's history.
-const NOTION_DATABASE_ID = '3737b954a45980d48a6cdc9a0623a045'
 const FOLDED_ACTIVITY = 'Masturbated'
 
 async function foldedDatesFromNotion() {
+  const rows = await queryAll(ENERGY_TRACKER_ID, {
+    property: 'Activities', multi_select: { contains: FOLDED_ACTIVITY },
+  })
   const dates = new Set()
   let undated = 0
-  let cursor
-  do {
-    const resp = await fetch(`https://api.notion.com/v1/databases/${NOTION_DATABASE_ID}/query`, {
-      method: 'POST',
-      headers: {
-        Authorization: `Bearer ${process.env.NOTION_TOKEN}`,
-        'Notion-Version': '2022-06-28',
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        filter: { property: 'Activities', multi_select: { contains: FOLDED_ACTIVITY } },
-        start_cursor: cursor,
-        page_size: 100,
-      }),
-    })
-    if (!resp.ok) throw new Error(`Notion ${resp.status}: ${await resp.text()}`)
-    const page = await resp.json()
-    for (const row of page.results) {
-      const start = row.properties.Date?.date?.start
-      // Rows without a Date can't be placed on the calendar - counted so they're visible, not guessed.
-      if (start) dates.add(start.slice(0, 10))
-      else undated++
-    }
-    cursor = page.has_more ? page.next_cursor : undefined
-  } while (cursor)
+  for (const row of rows) {
+    const date = rowDate(row)
+    // Rows without a Date can't be placed on the calendar - counted so they're visible, not guessed.
+    if (date) dates.add(date)
+    else undated++
+  }
   return { dates: [...dates].sort(), undated }
 }
 

@@ -5,6 +5,7 @@
   "cleanUrls": true,
   "crons": [
     { "path": "/api/keepalive", "schedule": "0 0 * * *" },
-    { "path": "/api/sync-notion", "schedule": "0 11 * * *" }
+    { "path": "/api/sync-notion", "schedule": "0 11 * * *" },
+    { "path": "/api/sync-internet", "schedule": "0 11 * * *" }
   ]
 }

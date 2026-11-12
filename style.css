@@ -48,6 +48,56 @@ h1 {
   margin-bottom: 2rem;
 }
 
+/* Tabs */
+.tabs {
+  display: flex;
+  justify-content: center;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+  margin-top: 1rem;
+}
+
+.tabs a {
+  color: var(--text-muted);
+  text-decoration: none;
+  font-size: 0.85rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  padding: 0.45rem 0.9rem;
+  border-radius: 999px;
+  border: 1px solid var(--border);
+}
+
+.tabs a:hover { color: var(--text); }
+.tabs a.active { color: var(--bg); background: var(--text); border-color: var(--text); }
+
+.tab-panel[hidden] { display: none; }
+.tab-panel > .legend { margin-bottom: 2rem; }
+
+.stats-note {
+  text-align: center;
+  color: var(--text-muted);
+  font-size: 0.85rem;
+  margin: -0.75rem 0 1rem;
+}
+
+/* Charts */
+.chart {
+  background: var(--surface);
+  border-radius: 12px;
+  padding: 1rem;
+  margin-bottom: 1.5rem;
+}
+
+.chart svg { width: 100%; height: auto; display: block; }
+.chart .grid { stroke: var(--border); stroke-width: 1; }
+.chart .axis { fill: var(--text-muted); font-size: 12px; }
+.chart .marker { stroke: var(--blue); stroke-width: 1.5; stroke-dasharray: 4 4; }
+.chart .bar { fill: var(--green); }
+.chart .line { fill: none; stroke: var(--green); stroke-width: 2; }
+.chart .point { fill: var(--green); }
+
 /* Stats */
 .stats {
   display: flex;
@@ -105,9 +155,14 @@ h1 {
 .dot.almost { background: var(--orange); }
 .dot.folded { background: var(--red); }
 .dot.unknown { background: var(--gray); }
+.dot.rest { background: var(--gray); }
+.dot.lift-1 { background: rgba(34, 197, 94, 0.3); }
+.dot.lift-2 { background: rgba(34, 197, 94, 0.55); }
+.dot.lift-3 { background: rgba(34, 197, 94, 0.8); }
+.dot.lift-4 { background: var(--green); }
 
 /* Calendar grid */
-#calendar {
+.calendar {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
   gap: 1.5rem;
@@ -161,6 +216,11 @@ h1 {
 .day-cell.clean { background: var(--green); }
 .day-cell.almost { background: var(--orange); }
 .day-cell.folded { background: var(--red); }
+.day-cell.rest { background: var(--gray); }
+.day-cell.lift-1 { background: rgba(34, 197, 94, 0.3); }
+.day-cell.lift-2 { background: rgba(34, 197, 94, 0.55); }
+.day-cell.lift-3 { background: rgba(34, 197, 94, 0.8); }
+.day-cell.lift-4 { background: var(--green); }
 .day-cell.start { background: var(--blue); }
 .day-cell.start.folded { background: var(--red); }
 .day-cell.future { background: transparent; }
@@ -184,7 +244,8 @@ h1 {
 
 .day-cell.clean .day-number,
 .day-cell.almost .day-number,
-.day-cell.folded .day-number {
+.day-cell.folded .day-number,
+.day-cell[class*="lift-"] .day-number {
   color: rgba(255, 255, 255, 0.65);
 }
 
@@ -303,11 +364,11 @@ button[type="submit"]:disabled { opacity: 0.4; cursor: not-allowed; }
 
 /* Responsive */
 @media (max-width: 750px) {
-  #calendar { grid-template-columns: 1fr; }
+  .calendar { grid-template-columns: 1fr; }
   .stats { gap: 1.75rem; }
   h1 { font-size: 1.9rem; }
 }
 
 @media (min-width: 750px) and (max-width: 1000px) {
-  #calendar { grid-template-columns: repeat(2, 1fr); }
+  .calendar { grid-template-columns: repeat(2, 1fr); }
 }

@@ -10,23 +10,20 @@
   <div class="container">
     <header>
       <h1>stop gooning</h1>
+      <nav class="tabs">
+        <a href="#gooning" data-tab="gooning">gooning</a>
+        <a href="#internet" data-tab="internet">internet</a>
+        <a href="#lifting" data-tab="lifting">lifting</a>
+        <a href="#weight" data-tab="weight">weight</a>
+      </nav>
+    </header>
+
+    <section class="tab-panel" id="panel-gooning">
       <div class="stats">
-        <div class="stat">
-          <span class="stat-number" id="current-streak">—</span>
-          <span class="stat-label">day streak</span>
-        </div>
-        <div class="stat">
-          <span class="stat-number" id="longest-streak">—</span>
-          <span class="stat-label">longest streak</span>
-        </div>
-        <div class="stat">
-          <span class="stat-number" id="total-clean">—</span>
-          <span class="stat-label">clean days</span>
-        </div>
-        <div class="stat">
-          <span class="stat-number" id="total-folded">—</span>
-          <span class="stat-label">days gooned</span>
-        </div>
+        <div class="stat"><span class="stat-number" data-stat="current-streak">—</span><span class="stat-label">day streak</span></div>
+        <div class="stat"><span class="stat-number" data-stat="longest-streak">—</span><span class="stat-label">longest streak</span></div>
+        <div class="stat"><span class="stat-number" data-stat="clean">—</span><span class="stat-label">clean days</span></div>
+        <div class="stat"><span class="stat-number" data-stat="bad">—</span><span class="stat-label">days gooned</span></div>
       </div>
       <div class="legend">
         <span class="legend-item"><span class="dot start"></span> start date</span>
@@ -34,8 +31,53 @@
         <span class="legend-item"><span class="dot almost"></span> almost gooned</span>
         <span class="legend-item"><span class="dot folded"></span> gooned</span>
       </div>
-    </header>
-    <main id="calendar"></main>
+      <div class="calendar"></div>
+    </section>
+
+    <section class="tab-panel" id="panel-internet" hidden>
+      <div class="stats">
+        <div class="stat"><span class="stat-number" data-stat="current-streak">—</span><span class="stat-label">day streak</span></div>
+        <div class="stat"><span class="stat-number" data-stat="longest-streak">—</span><span class="stat-label">longest streak</span></div>
+        <div class="stat"><span class="stat-number" data-stat="clean">—</span><span class="stat-label">days no internet</span></div>
+        <div class="stat"><span class="stat-number" data-stat="bad">—</span><span class="stat-label">days relapsed</span></div>
+      </div>
+      <div class="legend">
+        <span class="legend-item"><span class="dot start"></span> start dates</span>
+        <span class="legend-item"><span class="dot clean"></span> no internet</span>
+        <span class="legend-item"><span class="dot folded"></span> relapsed</span>
+      </div>
+      <div class="calendar"></div>
+    </section>
+
+    <section class="tab-panel" id="panel-lifting" hidden>
+      <div class="stats">
+        <div class="stat"><span class="stat-number" data-stat="workouts">—</span><span class="stat-label">workouts done</span></div>
+        <div class="stat"><span class="stat-number" data-stat="gym-days">—</span><span class="stat-label">gym days</span></div>
+        <div class="stat"><span class="stat-number" data-stat="average">—</span><span class="stat-label">avg of full workout</span></div>
+        <div class="stat"><span class="stat-number" data-stat="all-time">—</span><span class="stat-label">gym days all time</span></div>
+      </div>
+      <p class="stats-note" data-stat="since"></p>
+      <div class="legend">
+        <span class="legend-item"><span class="dot start"></span> start dates</span>
+        <span class="legend-item"><span class="dot rest"></span> no lifting</span>
+        <span class="legend-item"><span class="dot lift-1"></span> ¼</span>
+        <span class="legend-item"><span class="dot lift-2"></span> ½</span>
+        <span class="legend-item"><span class="dot lift-3"></span> ¾</span>
+        <span class="legend-item"><span class="dot lift-4"></span> full</span>
+      </div>
+      <div class="chart"></div>
+      <div class="calendar"></div>
+    </section>
+
+    <section class="tab-panel" id="panel-weight" hidden>
+      <div class="stats">
+        <div class="stat"><span class="stat-number" data-stat="current">—</span><span class="stat-label">latest (lb)</span></div>
+        <div class="stat"><span class="stat-number" data-stat="week">—</span><span class="stat-label">vs 7 days ago</span></div>
+        <div class="stat"><span class="stat-number" data-stat="month">—</span><span class="stat-label">vs 30 days ago</span></div>
+        <div class="stat"><span class="stat-number" data-stat="entries">—</span><span class="stat-label">weigh-ins</span></div>
+      </div>
+      <div class="chart"></div>
+    </section>
   </div>
   <script src="app.js"></script>
 </body>
