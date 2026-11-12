@@ -89,3 +89,9 @@
 - Why: Mike, 2026-11-12: the full weight history is the view he cares about most. Lifting stays on
   the past month, as he asked earlier.
 - Date: 2026-11-12
+
+## Hovering an event day highlights the whole event
+- Decision: hovering any day of an event outlines every day of that event in purple with a slow
+  pulse (`highlightEvent` in app.js, delegated on the calendar). Legend entry is just "special event".
+- Why: Mike, 2026-11-12: wants to see which days belong together.
+- Date: 2026-11-12

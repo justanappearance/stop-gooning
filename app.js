@@ -118,6 +118,7 @@ function renderCalendar({ tab, start, markers, cellClass }) {
       const event = events.find(e => e.start <= dateStr && dateStr <= e.end)
       if (event) {
         cell.classList.add('event')
+        cell.dataset.event = EVENTS.indexOf(event)
         cell.title = eventTitle(event)
       }
       cell.innerHTML = `<span class="day-number">${day}</span>`
@@ -376,6 +377,19 @@ async function showTab() {
     tracker.show(document.getElementById(`panel-${name}`), data, name)
   }
 }
+
+// Hovering one day of an event lights up all of its days, so the whole stretch reads as one thing
+// (Mike, 2026-11-12). Delegated, since the calendar is rebuilt on every tab switch.
+function highlightEvent(e, on) {
+  const id = e.target.closest('.day-cell.event')?.dataset.event
+  if (id === undefined) return
+  for (const cell of document.querySelectorAll(`.day-cell[data-event="${id}"]`)) {
+    cell.classList.toggle('event-hover', on)
+  }
+}
+const calendarEl = document.getElementById('calendar')
+calendarEl.addEventListener('mouseover', e => highlightEvent(e, true))
+calendarEl.addEventListener('mouseout', e => highlightEvent(e, false))
 
 window.addEventListener('hashchange', showTab)
 showTab()

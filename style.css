@@ -92,6 +92,17 @@ h1 {
 
 .chart-block { margin-top: 1.5rem; }
 .dot.event { background: var(--event); border-radius: 50%; }
+
+.day-cell.event-hover {
+  outline: 2px solid var(--event);
+  outline-offset: -2px;
+  animation: event-pulse 1s ease-in-out infinite alternate;
+}
+
+@keyframes event-pulse {
+  from { filter: brightness(1); }
+  to { filter: brightness(1.35); }
+}
 .chart-block[hidden], .calendar[hidden], .events-legend[hidden] { display: none; }
 
 .range-tabs {
