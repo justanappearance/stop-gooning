@@ -15,12 +15,13 @@ const LIFTING_RESTART = new Date(2026, 10, 12) // November 12, 2026
 const CALENDAR_START = GOONING_START
 
 // Trips and other things that explain a stretch of days. Dates come from Mike's photo folders
-// (footage\personal), converted to Central time. `tabs` limits an event to some tabs.
+// (footage\personal), converted to Central time. `tabs` limits an event to some tabs. All events
+// share one marker; hovering a day names it (Mike, 2026-11-12: no color per event).
 const EVENTS = [
-  { label: 'Yellowstone', start: '2026-05-22', end: '2026-05-25', color: '#a855f7' },
-  { label: 'Guatemala with friends', start: '2026-06-10', end: '2026-06-14', color: '#f472b6' },
-  { label: 'lifting injury', start: '2026-07-16', end: '2026-07-27', color: '#fb923c', tabs: ['lifting'] },
-  { label: "Denver, sister's engagement", start: '2026-09-26', end: '2026-09-27', color: '#38bdf8' },
+  { label: 'Yellowstone', start: '2026-05-22', end: '2026-05-25' },
+  { label: 'Guatemala with friends', start: '2026-06-10', end: '2026-06-14' },
+  { label: 'lifting injury', start: '2026-07-16', end: '2026-07-27', tabs: ['lifting'] },
+  { label: "Denver, sister's engagement", start: '2026-09-26', end: '2026-09-27' },
 ]
 
 // Chart time frames; "all" starts at the chart's own first day.
@@ -74,11 +75,8 @@ function eventsFor(tab) {
   return EVENTS.filter(e => !e.tabs || e.tabs.includes(tab))
 }
 
-function renderEventsLegend(tab) {
-  const label = e => `${e.label} (${shortDate(parseDate(e.start))}–${shortDate(parseDate(e.end))})`
-  document.getElementById('events-legend').innerHTML = eventsFor(tab)
-    .map(e => `<span class="legend-item"><span class="dot" style="background:${e.color}"></span> ${label(e)}</span>`)
-    .join('')
+function eventTitle(e) {
+  return `${e.label} (${shortDate(parseDate(e.start))}–${shortDate(parseDate(e.end))})`
 }
 
 // ---- Calendar ----
@@ -120,8 +118,7 @@ function renderCalendar({ tab, start, markers, cellClass }) {
       const event = events.find(e => e.start <= dateStr && dateStr <= e.end)
       if (event) {
         cell.classList.add('event')
-        cell.style.setProperty('--event-color', event.color)
-        cell.title = event.label
+        cell.title = eventTitle(event)
       }
       cell.innerHTML = `<span class="day-number">${day}</span>`
       gridEl.appendChild(cell)
@@ -353,7 +350,6 @@ async function showTab() {
   document.getElementById('calendar').hidden = Boolean(tracker.chartOnly)
   document.getElementById('events-legend').hidden = Boolean(tracker.chartOnly)
   document.getElementById('chart-block').hidden = name !== 'lifting' && name !== 'weight'
-  renderEventsLegend(name)
 
   loads[name] ??= tracker.load()
   const data = await loads[name]

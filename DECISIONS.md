@@ -67,3 +67,10 @@
 - Rejected: storing events in Notion or Supabase. Why rejected: a handful of past events; a list in
   app.js is simpler until he adds them often.
 - Date: 2026-11-12
+
+## Events share one marker; hover names them
+- Decision: every event uses the same purple corner dot and one legend entry ("special event");
+  the day's tooltip gives the event and its dates. Replaces the color-per-event version from earlier
+  the same day.
+- Why: Mike, 2026-11-12: a new color per event was too much; hovering is enough.
+- Date: 2026-11-12

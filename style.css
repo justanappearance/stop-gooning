@@ -9,6 +9,7 @@
   --gray: #334155;
   --blue: #3b82f6;
   --orange: #facc15;
+  --event: #c084fc;
 }
 
 * {
@@ -76,7 +77,7 @@ h1 {
 .tab-panel > .legend { margin-bottom: 0.75rem; }
 .events-legend { flex-wrap: wrap; margin-bottom: 2rem; }
 
-/* Event days: a small colored dot in the corner, color per event (see EVENTS in app.js). */
+/* Event days: a small dot in the corner; the day's tooltip names the event (EVENTS in app.js). */
 .day-cell.event::before {
   content: '';
   position: absolute;
@@ -85,11 +86,12 @@ h1 {
   width: 6px;
   height: 6px;
   border-radius: 50%;
-  background: var(--event-color);
+  background: var(--event);
   box-shadow: 0 0 0 1.5px var(--bg);
 }
 
 .chart-block { margin-top: 1.5rem; }
+.dot.event { background: var(--event); border-radius: 50%; }
 .chart-block[hidden], .calendar[hidden], .events-legend[hidden] { display: none; }
 
 .range-tabs {
