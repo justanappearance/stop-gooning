@@ -54,3 +54,16 @@
 - Decision: Oct 20 is marked on the internet calendar as a second start, with no separate stats.
 - Why: Mike, 2026-11-12, after trying a "since Oct 20" line: the all-time stats are enough.
 - Date: 2026-11-12
+
+## Fixed calendar, event markers, lifting chart from Nov 12, internet sync from Oct 6
+- Decision: one shared calendar that recolors per tab instead of a calendar per tab; `EVENTS`
+  (Yellowstone May 22-25, Guatemala Jun 10-14, Denver Sep 26-27, lifting injury Jul 16-27 on the
+  lifting tab only) shown as corner dots plus legend entries; the lifting bar chart sits under the
+  calendar and covers only Nov 12 on, with 1M (default)/3M/1Y/All, and weight uses the same chart.
+- Internet sync start moved from Oct 20 to Oct 6: Mike's rule is that any day without "No Internet"
+  means he used it, and Oct 6-19 had nothing logged, so they had been showing as clean.
+- Why: Mike, 2026-11-12. Trip dates come from his photo folders, converted from the UTC filenames
+  to Central time; the injury range is the July gap in his Lifting tags, which he confirmed.
+- Rejected: storing events in Notion or Supabase. Why rejected: a handful of past events; a list in
+  app.js is simpler until he adds them often.
+- Date: 2026-11-12

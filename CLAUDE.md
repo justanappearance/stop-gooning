@@ -8,6 +8,10 @@ it comes from what he logs in Notion; the page is public.
 ## Architecture
 Static `index.html`/`app.js`/`style.css` plus Vercel serverless functions in `api/`. Tabs are
 `#gooning`, `#internet`, `#lifting`, `#weight`; each fetches its data the first time it's shown.
+One calendar (from May 2026) stays in place across gooning/internet/lifting and only its colors
+change; weight shows just its chart. Lifting and weight share one chart with 1M/3M/1Y/All buttons.
+`EVENTS` in `app.js` marks trips (dates from Mike's footage\personal folders) and the July lifting
+injury with colored dots and legend entries.
 - Gooning and internet are stored in Supabase (REST, no client library), in the project shared with
   Mike's other trackers: tables `entries` (date PK, folded, almost) and `internet_entries` (date PK,
   relapsed). Daily crons copy Notion into them; older days were logged by hand through /admin pages.
@@ -21,7 +25,7 @@ Deploys on push to `main`.
   isn't a route.
 - `api/entries.js`, `api/internet-entries.js` - read the two Supabase tables.
 - `api/sync-notion.js` - cron: gooning days from the Energy Tracker's "Masturbated" tag. Add-only.
-- `api/sync-internet.js` - cron: internet days from 2026-10-20 on; clean only with "No Internet" in
+- `api/sync-internet.js` - cron: internet days from 2026-10-06 (right after the last /admin entry) on; clean only with "No Internet" in
   Potential Causes, otherwise relapsed (including days with no row).
 - `api/lifting.js` - Energy Tracker Activities: Lifting = 1, 3/4 Lifting, 1/2 Lifting, 1/4 Lifting.
 - `api/weight.js` - Notion "Weight" database: weight is the row title, date is the created time.
