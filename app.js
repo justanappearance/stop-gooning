@@ -18,6 +18,7 @@ const CALENDAR_START = GOONING_START
 // (footage\personal), converted to Central time. `tabs` limits an event to some tabs. All events
 // share one marker; hovering a day names it (Mike, 2026-11-12: no color per event).
 const EVENTS = [
+  { label: 'Vietnam', start: '2026-03-26', end: '2026-04-08' }, // before the calendars start; weight graph only
   { label: 'Yellowstone', start: '2026-05-22', end: '2026-05-25' },
   { label: "Cheef's Wedding", start: '2026-06-10', end: '2026-06-14' },
   { label: "Tam's Engagement", start: '2026-09-26', end: '2026-09-27' },
@@ -134,7 +135,8 @@ function renderCalendar({ tab, start, markers, cellClass }) {
 
 // One SVG for both chart types, over [from, today]. points: [{ date: Date, value }]; `trend`
 // (same shape, optional) is drawn as a solid line over a line chart's faint day-to-day one.
-function renderChart({ points, from, kind, yMin, yMax, formatY, trend = [] }) {
+// `events` are shaded as bands and `injuries` (date strings) drawn as red lines; hovering names them.
+function renderChart({ points, from, kind, yMin, yMax, formatY, trend = [], events = [], injuries = [] }) {
   const W = 900, H = 260, left = 44, right = 12, top = 12, bottom = 28
   const last = startOfToday()
   const span = Math.max(1, Math.round((last - from) / 864e5))
@@ -156,6 +158,17 @@ function renderChart({ points, from, kind, yMin, yMax, formatY, trend = [] }) {
     for (let m = new Date(from.getFullYear(), from.getMonth() + 1, 1); m <= last; m = new Date(m.getFullYear(), m.getMonth() + 1, 1)) {
       parts.push(`<text class="axis" x="${x(m)}" y="${H - 8}" text-anchor="middle">${MONTH_NAMES[m.getMonth()].slice(0, 3)}</text>`)
     }
+  }
+  const fromStr = formatDate(from)
+  const shownEvents = events.filter(e => e.end >= fromStr)
+  for (const e of shownEvents) {
+    const start = parseDate(e.start < fromStr ? fromStr : e.start)
+    const end = parseDate(e.end)
+    end.setDate(end.getDate() + 1) // shade through the end of the last day
+    parts.push(`<rect class="event-band" x="${x(start)}" y="${top}" width="${Math.max(2, x(end) - x(start))}" height="${H - top - bottom}"/>`)
+  }
+  for (const day of injuries.filter(d => d >= fromStr)) {
+    parts.push(`<line class="injury-line" x1="${x(parseDate(day))}" x2="${x(parseDate(day))}" y1="${top}" y2="${H - bottom}"/>`)
   }
   const visible = points.filter(p => p.date >= from)
   if (kind === 'bar') {
@@ -195,8 +208,16 @@ function renderChart({ points, from, kind, yMin, yMax, formatY, trend = [] }) {
       trendDot.setAttribute('cx', x(near.date))
       trendDot.setAttribute('cy', y(avg))
     }
+    // Events and injuries are matched to the day under the cursor, not the nearest weigh-in:
+    // trips often have no weigh-ins at all. Injuries get 3 days of slack to be easy to hit.
+    const cursor = new Date(from)
+    cursor.setDate(cursor.getDate() + Math.floor(((at.x - left) / (W - left - right)) * span))
+    const cursorStr = formatDate(cursor)
+    const event = shownEvents.find(e => e.start <= cursorStr && cursorStr <= e.end)
+    const injury = injuries.find(d => Math.abs(parseDate(d) - cursor) <= 3 * 864e5)
     const label = `${shortDate(near.date)}: ${formatY(near.value)}` +
-      (avg === undefined ? '' : ` · 7-day avg ${formatY(avg)}`)
+      (avg === undefined ? '' : ` · 7-day avg ${formatY(avg)}`) +
+      (event ? ` · ${event.label}` : '') + (injury ? ` · injury ${shortDate(parseDate(injury))}` : '')
     showTooltip(label, (avg === undefined ? dot : (avg > near.value ? trendDot : dot)).getBoundingClientRect())
   }
   svg.onmouseleave = () => {
@@ -360,12 +381,13 @@ const weight = {
     setStat(panel, 'entries', points.length)
 
     const trend = rollingAverage(points, 7)
-    document.getElementById('chart-note').textContent = 'dots: weigh-ins · line: 7-day average'
+    document.getElementById('chart-note').textContent =
+      'dots: weigh-ins · line: 7-day average · shaded: special events · red line: injury'
     renderRangeTabs('weight', points[0].date, from => {
       const values = points.filter(p => p.date >= from).map(p => p.value)
       if (!values.length) values.push(latest.value)
       renderChart({
-        points, from, kind: 'line', trend,
+        points, from, kind: 'line', trend, events: eventsFor('weight'), injuries: INJURY_DAYS,
         yMin: Math.floor(Math.min(...values) - 1), yMax: Math.ceil(Math.max(...values) + 1),
         formatY: v => `${Number(v.toFixed(1))}`,
       })

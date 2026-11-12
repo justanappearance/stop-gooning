@@ -118,3 +118,11 @@
 - Why: Mike, 2026-11-12: wanted the numbers to pop up on hover. Snapping to the nearest day means
   he doesn't have to hit a 3px dot or the thin line exactly.
 - Date: 2026-11-12
+
+## Events and injuries on the weight graph; Vietnam added
+- Decision: the weight chart shades each event as a purple band and draws injury days as a red line;
+  hovering names the event or injury under the cursor (matched to the cursor's day, since trips often
+  have no weigh-ins). Added Vietnam (Mar 26 - Apr 8, from footage\personal\family\vietnam 2026); it
+  predates the calendars, so it only shows on the weight graph.
+- Why: Mike, 2026-11-12: wanted the trips and the injury visible against his weight.
+- Date: 2026-11-12
