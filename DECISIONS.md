@@ -83,3 +83,9 @@
 - Rejected: a straight line from his first to latest weigh-in.
 - Why rejected: it hides everything in between, and changes meaning with the range buttons.
 - Date: 2026-11-12
+
+## Chart range buttons: All first; weight opens on All, lifting on 1M
+- Decision: buttons read All, 1M, 3M, 1Y on both charts; each chart remembers its own choice.
+- Why: Mike, 2026-11-12: the full weight history is the view he cares about most. Lifting stays on
+  the past month, as he asked earlier.
+- Date: 2026-11-12

@@ -25,7 +25,7 @@ const EVENTS = [
 ]
 
 // Chart time frames; "all" starts at the chart's own first day.
-const RANGES = [['1M', 30], ['3M', 91], ['1Y', 365], ['All', null]]
+const RANGES = [['All', null], ['1M', 30], ['3M', 91], ['1Y', 365]]
 
 function formatDate(d) {
   const y = d.getFullYear()
@@ -183,9 +183,10 @@ function rollingAverage(points, days) {
   })
 }
 
-// Range buttons under the chart; draw(from) redraws it for the chosen time frame.
-let selectedRange = '1M'
-function renderRangeTabs(firstDay, draw) {
+// Range buttons above the chart; draw(from) redraws it for the chosen time frame. Each chart keeps
+// its own choice. Defaults (Mike, 2026-11-12): weight opens on All, lifting on the past month.
+const selectedRange = { lifting: '1M', weight: 'All' }
+function renderRangeTabs(chart, firstDay, draw) {
   const container = document.getElementById('range-tabs')
   const today = startOfToday()
   const fromFor = name => {
@@ -193,15 +194,15 @@ function renderRangeTabs(firstDay, draw) {
     return days === null ? firstDay : daysBefore(today, days - 1)
   }
   container.innerHTML = RANGES.map(([name]) =>
-    `<button type="button" data-range="${name}" class="${name === selectedRange ? 'active' : ''}">${name}</button>`).join('')
+    `<button type="button" data-range="${name}" class="${name === selectedRange[chart] ? 'active' : ''}">${name}</button>`).join('')
   container.onclick = e => {
     const name = e.target.dataset.range
     if (!name) return
-    selectedRange = name
+    selectedRange[chart] = name
     for (const b of container.children) b.classList.toggle('active', b.dataset.range === name)
     draw(fromFor(name))
   }
-  draw(fromFor(selectedRange))
+  draw(fromFor(selectedRange[chart]))
 }
 
 // ---- Clean/bad trackers (gooning, internet) ----
@@ -289,7 +290,7 @@ const lifting = {
     for (const d = new Date(LIFTING_RESTART); d <= today; d.setDate(d.getDate() + 1)) {
       points.push({ date: new Date(d), value: shares[formatDate(d)] || 0 })
     }
-    renderRangeTabs(LIFTING_RESTART, from => renderChart({
+    renderRangeTabs('lifting', LIFTING_RESTART, from => renderChart({
       points, from, kind: 'bar', yMin: 0, yMax: 1, formatY: v => `${Math.round(v * 100)}%`,
     }))
   },
@@ -325,7 +326,7 @@ const weight = {
 
     const trend = rollingAverage(points, 7)
     document.getElementById('chart-note').textContent = 'dots: weigh-ins · line: 7-day average'
-    renderRangeTabs(points[0].date, from => {
+    renderRangeTabs('weight', points[0].date, from => {
       const values = points.filter(p => p.date >= from).map(p => p.value)
       if (!values.length) values.push(latest.value)
       renderChart({
