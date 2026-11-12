@@ -99,10 +99,28 @@ h1 {
   animation: event-pulse 1s ease-in-out infinite alternate;
 }
 
+/* Darkens only - brightening washed the greens out. */
 @keyframes event-pulse {
   from { filter: brightness(1); }
-  to { filter: brightness(1.35); }
+  to { filter: brightness(0.7); }
 }
+
+.tooltip {
+  position: absolute;
+  z-index: 10;
+  pointer-events: none;
+  background: var(--surface);
+  color: var(--text);
+  border: 1px solid var(--event);
+  border-radius: 8px;
+  padding: 0.4rem 0.7rem;
+  font-size: 0.85rem;
+  font-weight: 600;
+  white-space: nowrap;
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.45);
+}
+
+.tooltip[hidden] { display: none; }
 .chart-block[hidden], .calendar[hidden], .events-legend[hidden] { display: none; }
 
 .range-tabs {

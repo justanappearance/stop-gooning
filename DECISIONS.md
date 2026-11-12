@@ -102,3 +102,11 @@
   renamed "break after injury". Event dots now only appear on days the current tab tracks.
 - Why: Mike, 2026-11-12: the injury happened on July 12 and explains the break that followed.
 - Date: 2026-11-12
+
+## Custom instant tooltip; event pulse darkens only
+- Decision: event and injury days carry `data-tip` instead of `title`, shown by the page's own
+  tooltip above the day the moment the mouse enters (`hoverDay` in app.js). The event pulse goes
+  from normal to 70% brightness instead of brighter.
+- Why: Mike, 2026-11-12: the browser's tooltip was slow and plain, and the bright phase of the pulse
+  washed the colors out.
+- Date: 2026-11-12

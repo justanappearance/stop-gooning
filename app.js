@@ -120,9 +120,9 @@ function renderCalendar({ tab, start, markers, cellClass }) {
       if (event && status) {
         cell.classList.add('event')
         cell.dataset.event = EVENTS.indexOf(event)
-        cell.title = eventTitle(event)
+        cell.dataset.tip = eventTitle(event)
       }
-      if (cell.classList.contains('injury')) cell.title = cell.title ? `injury · ${cell.title}` : 'injury'
+      if (cell.classList.contains('injury')) cell.dataset.tip = cell.dataset.tip ? `injury · ${cell.dataset.tip}` : 'injury'
       cell.innerHTML = `<span class="day-number">${day}</span>`
       gridEl.appendChild(cell)
     }
@@ -383,18 +383,35 @@ async function showTab() {
   }
 }
 
-// Hovering one day of an event lights up all of its days, so the whole stretch reads as one thing
-// (Mike, 2026-11-12). Delegated, since the calendar is rebuilt on every tab switch.
-function highlightEvent(e, on) {
-  const id = e.target.closest('.day-cell.event')?.dataset.event
-  if (id === undefined) return
-  for (const cell of document.querySelectorAll(`.day-cell[data-event="${id}"]`)) {
-    cell.classList.toggle('event-hover', on)
+// Hovering a marked day shows its label right away in the page's own tooltip (the browser's
+// `title` one is slow and plain - Mike, 2026-11-12), and lights up every day of the same event so
+// the stretch reads as one thing. Delegated, since the calendar is rebuilt on every tab switch.
+const tooltip = document.createElement('div')
+tooltip.className = 'tooltip'
+tooltip.hidden = true
+document.body.appendChild(tooltip)
+
+function hoverDay(e, on) {
+  const cell = e.target.closest('.day-cell')
+  if (!cell) return
+  const id = cell.dataset.event
+  if (id !== undefined) {
+    for (const day of document.querySelectorAll(`.day-cell[data-event="${id}"]`)) {
+      day.classList.toggle('event-hover', on)
+    }
   }
+  tooltip.hidden = !(on && cell.dataset.tip)
+  if (tooltip.hidden) return
+  tooltip.textContent = cell.dataset.tip
+  const box = cell.getBoundingClientRect()
+  const left = Math.min(Math.max(8, box.left + box.width / 2 - tooltip.offsetWidth / 2),
+    document.documentElement.clientWidth - tooltip.offsetWidth - 8)
+  tooltip.style.left = `${left + window.scrollX}px`
+  tooltip.style.top = `${box.top + window.scrollY - tooltip.offsetHeight - 8}px`
 }
 const calendarEl = document.getElementById('calendar')
-calendarEl.addEventListener('mouseover', e => highlightEvent(e, true))
-calendarEl.addEventListener('mouseout', e => highlightEvent(e, false))
+calendarEl.addEventListener('mouseover', e => hoverDay(e, true))
+calendarEl.addEventListener('mouseout', e => hoverDay(e, false))
 
 window.addEventListener('hashchange', showTab)
 showTab()
