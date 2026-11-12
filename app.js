@@ -6,9 +6,25 @@ const GOONING_START = new Date(2026, 4, 6) // May 6, 2026
 const INTERNET_START = new Date(2026, 5, 30) // June 30, 2026 - stats count from here
 // Second internet start (Mike, 2026-11-12): marked on the calendar only; he didn't want separate stats.
 const INTERNET_RESTART = new Date(2026, 9, 20) // October 20, 2026
+const LIFTING_START = new Date(2026, 5, 1) // June 1, 2026 - first "Lifting" tag in the Energy Tracker
 // Mike started logging partial workouts (1/4, 1/2, 3/4 Lifting) here; before it, every gym day
-// was plain "Lifting". Lifting stats count from here, the calendar and graph show everything.
+// was plain "Lifting". Lifting stats and the bar graph count from here.
 const LIFTING_RESTART = new Date(2026, 10, 12) // November 12, 2026
+// One calendar is shared by every day-by-day tab and stays put when switching tabs (Mike,
+// 2026-11-12), so it spans from the earliest tracker's start; days before a tab's own start are blank.
+const CALENDAR_START = GOONING_START
+
+// Trips and other things that explain a stretch of days. Dates come from Mike's photo folders
+// (footage\personal), converted to Central time. `tabs` limits an event to some tabs.
+const EVENTS = [
+  { label: 'Yellowstone', start: '2026-05-22', end: '2026-05-25', color: '#a855f7' },
+  { label: 'Guatemala with friends', start: '2026-06-10', end: '2026-06-14', color: '#f472b6' },
+  { label: 'lifting injury', start: '2026-07-16', end: '2026-07-27', color: '#fb923c', tabs: ['lifting'] },
+  { label: "Denver, sister's engagement", start: '2026-09-26', end: '2026-09-27', color: '#38bdf8' },
+]
+
+// Chart time frames; "all" starts at the chart's own first day.
+const RANGES = [['1M', 30], ['3M', 91], ['1Y', 365], ['All', null]]
 
 function formatDate(d) {
   const y = d.getFullYear()
@@ -24,6 +40,12 @@ function parseDate(str) {
 
 function shortDate(d) {
   return `${MONTH_NAMES[d.getMonth()].slice(0, 3)} ${d.getDate()}`
+}
+
+function daysBefore(date, days) {
+  const d = new Date(date)
+  d.setDate(d.getDate() - days)
+  return d
 }
 
 function startOfToday() {
@@ -46,17 +68,32 @@ function setStat(panel, name, value) {
   panel.querySelector(`[data-stat="${name}"]`).textContent = value
 }
 
-// ---- Calendar (shared by every day-by-day tab) ----
+// ---- Events ----
+
+function eventsFor(tab) {
+  return EVENTS.filter(e => !e.tabs || e.tabs.includes(tab))
+}
+
+function renderEventsLegend(tab) {
+  const label = e => `${e.label} (${shortDate(parseDate(e.start))}–${shortDate(parseDate(e.end))})`
+  document.getElementById('events-legend').innerHTML = eventsFor(tab)
+    .map(e => `<span class="legend-item"><span class="dot" style="background:${e.color}"></span> ${label(e)}</span>`)
+    .join('')
+}
+
+// ---- Calendar ----
 
 // cellClass(dateStr, isToday) returns the status class for a day on or after `start`, or null to
 // leave it blank. `markers` are the start dates drawn in blue.
-function renderCalendar(container, { start, markers, cellClass }) {
+function renderCalendar({ tab, start, markers, cellClass }) {
+  const container = document.getElementById('calendar')
   const today = startOfToday()
   const todayStr = formatDate(today)
   const markerStrs = new Set(markers.map(formatDate))
+  const events = eventsFor(tab)
   container.innerHTML = ''
 
-  for (let first = new Date(start.getFullYear(), start.getMonth(), 1); first <= today;
+  for (let first = new Date(CALENDAR_START.getFullYear(), CALENDAR_START.getMonth(), 1); first <= today;
        first = new Date(first.getFullYear(), first.getMonth() + 1, 1)) {
     const monthEl = document.createElement('div')
     monthEl.className = 'month'
@@ -80,6 +117,12 @@ function renderCalendar(container, { start, markers, cellClass }) {
       cell.classList.add(status || 'empty')
       if (isToday) cell.classList.add('today')
       if (markerStrs.has(dateStr)) cell.classList.add('start')
+      const event = events.find(e => e.start <= dateStr && dateStr <= e.end)
+      if (event) {
+        cell.classList.add('event')
+        cell.style.setProperty('--event-color', event.color)
+        cell.title = event.label
+      }
       cell.innerHTML = `<span class="day-number">${day}</span>`
       gridEl.appendChild(cell)
     }
@@ -88,12 +131,73 @@ function renderCalendar(container, { start, markers, cellClass }) {
   }
 }
 
+// ---- Chart ----
+
+// One SVG for both chart types, over [from, today]. points: [{ date: Date, value }].
+function renderChart({ points, from, kind, yMin, yMax, formatY }) {
+  const W = 900, H = 260, left = 44, right = 12, top = 12, bottom = 28
+  const last = startOfToday()
+  const span = Math.max(1, Math.round((last - from) / 864e5))
+  const x = d => left + ((d - from) / 864e5 / span) * (W - left - right)
+  const y = v => top + (1 - (v - yMin) / (yMax - yMin)) * (H - top - bottom)
+  const barWidth = Math.max(1.5, Math.min(24, (W - left - right) / (span + 1) - 1.5))
+
+  const parts = []
+  for (const tick of [yMin, (yMin + yMax) / 2, yMax]) {
+    parts.push(`<line class="grid" x1="${left}" x2="${W - right}" y1="${y(tick)}" y2="${y(tick)}"/>`)
+    parts.push(`<text class="axis" x="${left - 6}" y="${y(tick) + 4}" text-anchor="end">${formatY(tick)}</text>`)
+  }
+  // Weekly date labels for short ranges, month names for long ones.
+  if (span <= 100) {
+    for (let d = new Date(from); d <= last; d.setDate(d.getDate() + 7)) {
+      parts.push(`<text class="axis" x="${x(d)}" y="${H - 8}" text-anchor="middle">${shortDate(d)}</text>`)
+    }
+  } else {
+    for (let m = new Date(from.getFullYear(), from.getMonth() + 1, 1); m <= last; m = new Date(m.getFullYear(), m.getMonth() + 1, 1)) {
+      parts.push(`<text class="axis" x="${x(m)}" y="${H - 8}" text-anchor="middle">${MONTH_NAMES[m.getMonth()].slice(0, 3)}</text>`)
+    }
+  }
+  const visible = points.filter(p => p.date >= from)
+  if (kind === 'bar') {
+    for (const p of visible) {
+      if (!p.value) continue
+      parts.push(`<rect class="bar" x="${x(p.date) - barWidth / 2}" y="${y(p.value)}" width="${barWidth}" height="${y(yMin) - y(p.value)}"><title>${shortDate(p.date)}: ${formatY(p.value)}</title></rect>`)
+    }
+  } else {
+    parts.push(`<polyline class="line" points="${visible.map(p => `${x(p.date)},${y(p.value)}`).join(' ')}"/>`)
+    for (const p of visible) {
+      parts.push(`<circle class="point" cx="${x(p.date)}" cy="${y(p.value)}" r="3"><title>${shortDate(p.date)}: ${formatY(p.value)}</title></circle>`)
+    }
+  }
+  document.getElementById('chart').innerHTML = `<svg viewBox="0 0 ${W} ${H}" role="img">${parts.join('')}</svg>`
+}
+
+// Range buttons under the chart; draw(from) redraws it for the chosen time frame.
+let selectedRange = '1M'
+function renderRangeTabs(firstDay, draw) {
+  const container = document.getElementById('range-tabs')
+  const today = startOfToday()
+  const fromFor = name => {
+    const days = RANGES.find(([n]) => n === name)[1]
+    return days === null ? firstDay : daysBefore(today, days - 1)
+  }
+  container.innerHTML = RANGES.map(([name]) =>
+    `<button type="button" data-range="${name}" class="${name === selectedRange ? 'active' : ''}">${name}</button>`).join('')
+  container.onclick = e => {
+    const name = e.target.dataset.range
+    if (!name) return
+    selectedRange = name
+    for (const b of container.children) b.classList.toggle('active', b.dataset.range === name)
+    draw(fromFor(name))
+  }
+  draw(fromFor(selectedRange))
+}
+
 // ---- Clean/bad trackers (gooning, internet) ----
 
 function streakStats(isBad, start) {
   const today = startOfToday()
-  const yesterday = new Date(today)
-  yesterday.setDate(yesterday.getDate() - 1) // today is still pending
+  const yesterday = daysBefore(today, 1) // today is still pending
   let longest = 0
   let run = 0
   let bad = 0
@@ -110,131 +214,74 @@ function streakStats(isBad, start) {
   return { current: run, longest, bad, clean: pastDays - bad }
 }
 
-function renderCleanTracker(panel, { start, markers, entries, isBad, extraClass }) {
-  const byDate = {}
-  for (const e of entries) byDate[e.date] = e
-  const bad = dateStr => Boolean(byDate[dateStr] && isBad(byDate[dateStr]))
+function cleanTracker({ url, start, markers, isBad, extraClass }) {
+  return {
+    load: () => fetchJSON(url, []),
+    show(panel, entries, tab) {
+      const byDate = {}
+      for (const e of entries) byDate[e.date] = e
+      const bad = dateStr => Boolean(byDate[dateStr] && isBad(byDate[dateStr]))
 
-  const stats = streakStats(bad, start)
-  setStat(panel, 'current-streak', stats.current)
-  setStat(panel, 'longest-streak', stats.longest)
-  setStat(panel, 'clean', stats.clean)
-  setStat(panel, 'bad', stats.bad)
+      const stats = streakStats(bad, start)
+      setStat(panel, 'current-streak', stats.current)
+      setStat(panel, 'longest-streak', stats.longest)
+      setStat(panel, 'clean', stats.clean)
+      setStat(panel, 'bad', stats.bad)
 
-  renderCalendar(panel.querySelector('.calendar'), {
-    start,
-    markers,
-    cellClass(dateStr, isToday) {
-      if (bad(dateStr)) return 'folded'
-      const extra = extraClass && byDate[dateStr] && extraClass(byDate[dateStr])
-      if (extra) return extra
-      return isToday ? null : 'clean'
+      renderCalendar({
+        tab, start, markers,
+        cellClass(dateStr, isToday) {
+          if (bad(dateStr)) return 'folded'
+          const extra = extraClass && byDate[dateStr] && extraClass(byDate[dateStr])
+          if (extra) return extra
+          return isToday ? null : 'clean'
+        },
+      })
     },
-  })
-}
-
-async function showGooning(panel) {
-  renderCleanTracker(panel, {
-    start: GOONING_START,
-    markers: [GOONING_START],
-    entries: await fetchJSON('/api/entries', []),
-    isBad: e => e.folded,
-    extraClass: e => (e.almost ? 'almost' : null),
-  })
-}
-
-async function showInternet(panel) {
-  renderCleanTracker(panel, {
-    start: INTERNET_START,
-    markers: [INTERNET_START, INTERNET_RESTART],
-    entries: await fetchJSON('/api/internet-entries', []),
-    isBad: e => e.relapsed,
-  })
-}
-
-// ---- Charts ----
-
-// One SVG for both chart types. points: [{ date: Date, value }]; markers: Dates drawn as dashed lines.
-function renderChart(container, { points, kind, yMin, yMax, markers = [], formatY }) {
-  const W = 900, H = 260, left = 44, right = 12, top = 12, bottom = 28
-  const first = points[0].date
-  const last = startOfToday()
-  const span = Math.max(1, (last - first) / 864e5)
-  const x = d => left + ((d - first) / 864e5 / span) * (W - left - right)
-  const y = v => top + (1 - (v - yMin) / (yMax - yMin)) * (H - top - bottom)
-  const barWidth = Math.max(1.5, (W - left - right) / (span + 1) - 1.5)
-
-  const parts = []
-  for (const tick of [yMin, (yMin + yMax) / 2, yMax]) {
-    parts.push(`<line class="grid" x1="${left}" x2="${W - right}" y1="${y(tick)}" y2="${y(tick)}"/>`)
-    parts.push(`<text class="axis" x="${left - 6}" y="${y(tick) + 4}" text-anchor="end">${formatY(tick)}</text>`)
   }
-  for (let m = new Date(first.getFullYear(), first.getMonth() + 1, 1); m <= last; m = new Date(m.getFullYear(), m.getMonth() + 1, 1)) {
-    parts.push(`<text class="axis" x="${x(m)}" y="${H - 8}" text-anchor="middle">${MONTH_NAMES[m.getMonth()].slice(0, 3)}</text>`)
-  }
-  for (const m of markers) {
-    parts.push(`<line class="marker" x1="${x(m)}" x2="${x(m)}" y1="${top}" y2="${H - bottom}"/>`)
-  }
-  if (kind === 'bar') {
-    for (const p of points) {
-      if (!p.value) continue
-      parts.push(`<rect class="bar" x="${x(p.date) - barWidth / 2}" y="${y(p.value)}" width="${barWidth}" height="${y(yMin) - y(p.value)}"><title>${shortDate(p.date)}: ${formatY(p.value)}</title></rect>`)
-    }
-  } else {
-    parts.push(`<polyline class="line" points="${points.map(p => `${x(p.date)},${y(p.value)}`).join(' ')}"/>`)
-    for (const p of points) {
-      parts.push(`<circle class="point" cx="${x(p.date)}" cy="${y(p.value)}" r="3"><title>${shortDate(p.date)}: ${formatY(p.value)}</title></circle>`)
-    }
-  }
-  container.innerHTML = `<svg viewBox="0 0 ${W} ${H}" role="img">${parts.join('')}</svg>`
 }
 
 // ---- Lifting ----
 
 const LIFT_CLASS = { 0.25: 'lift-1', 0.5: 'lift-2', 0.75: 'lift-3', 1: 'lift-4' }
 
-async function showLifting(panel) {
-  const shares = await fetchJSON('/api/lifting', {})
-  const dates = Object.keys(shares).sort()
-  if (!dates.length) {
-    panel.querySelector('.calendar').innerHTML = '<p class="loading">No lifting logged yet.</p>'
-    return
-  }
-  const firstLift = parseDate(dates[0])
-  const today = startOfToday()
-
-  let workouts = 0
-  let gymDays = 0
-  for (const [date, share] of Object.entries(shares)) {
-    if (parseDate(date) >= LIFTING_RESTART) {
-      workouts += share
-      gymDays++
+const lifting = {
+  load: () => fetchJSON('/api/lifting', {}),
+  show(panel, shares, tab) {
+    const today = startOfToday()
+    let workouts = 0
+    let gymDays = 0
+    for (const [date, share] of Object.entries(shares)) {
+      if (parseDate(date) >= LIFTING_RESTART) {
+        workouts += share
+        gymDays++
+      }
     }
-  }
-  setStat(panel, 'workouts', Number(workouts.toFixed(2)))
-  setStat(panel, 'gym-days', gymDays)
-  setStat(panel, 'average', gymDays ? `${Math.round((workouts / gymDays) * 100)}%` : '—')
-  setStat(panel, 'all-time', dates.length)
-  const dayNumber = Math.round((today - LIFTING_RESTART) / 864e5) + 1
-  setStat(panel, 'since', `since ${shortDate(LIFTING_RESTART)} (day ${dayNumber}) · all time since ${shortDate(firstLift)}`)
+    setStat(panel, 'workouts', Number(workouts.toFixed(2)))
+    setStat(panel, 'gym-days', gymDays)
+    setStat(panel, 'average', gymDays ? `${Math.round((workouts / gymDays) * 100)}%` : '—')
+    setStat(panel, 'all-time', Object.keys(shares).length)
+    const dayNumber = Math.round((today - LIFTING_RESTART) / 864e5) + 1
+    setStat(panel, 'since', `since ${shortDate(LIFTING_RESTART)} (day ${dayNumber}) · all time since ${shortDate(LIFTING_START)}`)
 
-  const points = []
-  for (const d = new Date(firstLift); d <= today; d.setDate(d.getDate() + 1)) {
-    points.push({ date: new Date(d), value: shares[formatDate(d)] || 0 })
-  }
-  renderChart(panel.querySelector('.chart'), {
-    points, kind: 'bar', yMin: 0, yMax: 1, markers: [LIFTING_RESTART],
-    formatY: v => `${Math.round(v * 100)}%`,
-  })
+    renderCalendar({
+      tab, start: LIFTING_START, markers: [LIFTING_START, LIFTING_RESTART],
+      cellClass(dateStr, isToday) {
+        if (shares[dateStr]) return LIFT_CLASS[shares[dateStr]]
+        return isToday ? null : 'rest'
+      },
+    })
 
-  renderCalendar(panel.querySelector('.calendar'), {
-    start: firstLift,
-    markers: [firstLift, LIFTING_RESTART],
-    cellClass(dateStr, isToday) {
-      if (shares[dateStr]) return LIFT_CLASS[shares[dateStr]]
-      return isToday ? null : 'rest'
-    },
-  })
+    // Only from the second start: before it every gym day was logged as a full workout, so
+    // the bars would say nothing (Mike, 2026-11-12).
+    const points = []
+    for (const d = new Date(LIFTING_RESTART); d <= today; d.setDate(d.getDate() + 1)) {
+      points.push({ date: new Date(d), value: shares[formatDate(d)] || 0 })
+    }
+    renderRangeTabs(LIFTING_RESTART, from => renderChart({
+      points, from, kind: 'bar', yMin: 0, yMax: 1, formatY: v => `${Math.round(v * 100)}%`,
+    }))
+  },
 }
 
 // ---- Weight ----
@@ -245,52 +292,74 @@ function signed(n) {
   return rounded > 0 ? `+${rounded}` : `${rounded}`
 }
 
-async function showWeight(panel) {
-  const raw = await fetchJSON('/api/weight', [])
-  if (!raw.length) {
-    panel.querySelector('.chart').innerHTML = '<p class="loading">No weigh-ins found.</p>'
-    return
-  }
-  const points = raw.map(p => ({ date: parseDate(p.date), value: p.weight }))
-  const latest = points[points.length - 1]
-  // Change against the most recent weigh-in at least N days before the latest one.
-  const changeOver = days => {
-    const cutoff = new Date(latest.date)
-    cutoff.setDate(cutoff.getDate() - days)
-    const earlier = points.filter(p => p.date <= cutoff).pop()
-    return earlier ? latest.value - earlier.value : null
-  }
-  setStat(panel, 'current', latest.value)
-  setStat(panel, 'week', signed(changeOver(7)))
-  setStat(panel, 'month', signed(changeOver(30)))
-  setStat(panel, 'entries', points.length)
+const weight = {
+  chartOnly: true,
+  load: () => fetchJSON('/api/weight', []),
+  show(panel, raw) {
+    if (!raw.length) {
+      document.getElementById('chart').innerHTML = '<p class="loading">No weigh-ins found.</p>'
+      return
+    }
+    const points = raw.map(p => ({ date: parseDate(p.date), value: p.weight }))
+    const latest = points[points.length - 1]
+    // Change against the most recent weigh-in at least N days before the latest one.
+    const changeOver = days => {
+      const earlier = points.filter(p => p.date <= daysBefore(latest.date, days)).pop()
+      return earlier ? latest.value - earlier.value : null
+    }
+    setStat(panel, 'current', latest.value)
+    setStat(panel, 'week', signed(changeOver(7)))
+    setStat(panel, 'month', signed(changeOver(30)))
+    setStat(panel, 'entries', points.length)
 
-  const values = points.map(p => p.value)
-  const pad = 2
-  renderChart(panel.querySelector('.chart'), {
-    points, kind: 'line',
-    yMin: Math.floor(Math.min(...values) - pad), yMax: Math.ceil(Math.max(...values) + pad),
-    formatY: v => `${Number(v.toFixed(1))}`,
-  })
+    renderRangeTabs(points[0].date, from => {
+      const values = points.filter(p => p.date >= from).map(p => p.value)
+      if (!values.length) values.push(latest.value)
+      renderChart({
+        points, from, kind: 'line',
+        yMin: Math.floor(Math.min(...values) - 1), yMax: Math.ceil(Math.max(...values) + 1),
+        formatY: v => `${Number(v.toFixed(1))}`,
+      })
+    })
+  },
 }
 
 // ---- Tabs ----
 
-const TABS = { gooning: showGooning, internet: showInternet, lifting: showLifting, weight: showWeight }
-const loaded = new Set()
+const TABS = {
+  gooning: cleanTracker({
+    url: '/api/entries', start: GOONING_START, markers: [GOONING_START],
+    isBad: e => e.folded, extraClass: e => (e.almost ? 'almost' : null),
+  }),
+  internet: cleanTracker({
+    url: '/api/internet-entries', start: INTERNET_START, markers: [INTERNET_START, INTERNET_RESTART],
+    isBad: e => e.relapsed,
+  }),
+  lifting,
+  weight,
+}
+// Each tab's data is fetched once, on first view; switching back redraws from the cache.
+const loads = {}
 
-function showTab() {
+async function showTab() {
   const name = TABS[location.hash.slice(1)] ? location.hash.slice(1) : 'gooning'
+  const tracker = TABS[name]
   for (const link of document.querySelectorAll('.tabs a')) {
     link.classList.toggle('active', link.dataset.tab === name)
   }
   for (const tab of Object.keys(TABS)) {
     document.getElementById(`panel-${tab}`).hidden = tab !== name
   }
-  // Each tab fetches once, on first view, so opening the site doesn't wait on all four sources.
-  if (!loaded.has(name)) {
-    loaded.add(name)
-    TABS[name](document.getElementById(`panel-${name}`))
+  document.getElementById('calendar').hidden = Boolean(tracker.chartOnly)
+  document.getElementById('events-legend').hidden = Boolean(tracker.chartOnly)
+  document.getElementById('chart-block').hidden = name !== 'lifting' && name !== 'weight'
+  renderEventsLegend(name)
+
+  loads[name] ??= tracker.load()
+  const data = await loads[name]
+  // A quick second click could land before this one's data; only draw the tab still selected.
+  if (location.hash.slice(1) === name || (name === 'gooning' && !TABS[location.hash.slice(1)])) {
+    tracker.show(document.getElementById(`panel-${name}`), data, name)
   }
 }
 

@@ -3,10 +3,11 @@ import { ENERGY_TRACKER_ID, queryAll, rowDate } from '../lib/notion.js'
 // Sets each day's internet status from the Notion "Energy Tracker": a day is clean only if a row
 // dated that day has "No Internet" in Potential Causes. Anything else - including a day with no row
 // at all - counts as relapsed, which is how Mike logs it (Mike, 2026-11-12).
-// Notion is the source of truth only from SYNC_START on; older days keep what was logged by hand
-// on quitting-the-internet's /admin. The table lives in the Supabase project both sites share.
+// Notion is the source of truth from SYNC_START on: the day after the last day Mike logged by hand
+// on quitting-the-internet's /admin (2026-10-05). Older days keep those hand-logged entries, which he
+// says are accurate. The table lives in the Supabase project both sites share.
 const CLEAN_CAUSE = 'No Internet'
-const SYNC_START = '2026-10-20' // the internet tracker's second start date
+const SYNC_START = '2026-10-06'
 const TIME_ZONE = 'America/Chicago'
 
 // Today is still in progress (and Vercel runs in UTC), so only days through yesterday in
