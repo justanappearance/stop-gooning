@@ -27,3 +27,30 @@
 - Why rejected: needs a public webhook endpoint with signature checks, more moving parts than a
   daily cron for one person logging once a day.
 - Date: 2026-11-12
+
+## One site, four tabs: gooning, internet, lifting, weight
+- Decision: stop-gooning.vercel.app became the combined tracker (name kept, Mike's choice). The
+  internet calendar moved in as a tab, reading the same `internet_entries` table, and its Notion
+  sync (`api/sync-internet.js`) lives here because this Vercel project already has `NOTION_TOKEN`.
+  quitting-the-internet.vercel.app/ now redirects to `#internet`.
+- Why: Mike, 2026-11-12: the trackers are one record of his behavior and energy, and he logs them
+  all in Notion.
+- Lifting and weight read Notion live instead of syncing into Supabase: nothing else needs them,
+  and live reads avoid a second copy. Cached 10 minutes at Vercel's edge.
+- Calendars and charts share one renderer each (UI consistency rule); no chart library, plain SVG.
+- Rejected: a new Vercel project and domain. Why rejected: Mike was fine with the existing name, and
+  it would mean a new project, token and env vars for no gain.
+- Date: 2026-11-12
+
+## Lifting: partial workouts from Nov 12, all earlier gym days count as full
+- Decision: Activities tags map to a share of the usual workout: "Lifting" 1, "3/4 Lifting",
+  "1/2 Lifting", "1/4 Lifting". Lifting stats count from 2026-11-12 (second start), the graph and
+  calendar show every day since the first Lifting tag (June 1, 2026).
+- Why: Mike started logging partial workouts on Nov 12. Before that "Lifting" only meant he went,
+  and he said to treat those days as full.
+- Date: 2026-11-12
+
+## Internet stats count from June 30 only
+- Decision: Oct 20 is marked on the internet calendar as a second start, with no separate stats.
+- Why: Mike, 2026-11-12, after trying a "since Oct 20" line: the all-time stats are enough.
+- Date: 2026-11-12
