@@ -11,3 +11,19 @@
 - Decision: `app.js` used to have two separate dates — `START_DATE` (March 16, 2026, controlled which months/days the calendar rendered) and `STATS_START_DATE` (May 6, 2026, controlled streaks/day counts and the blue "start" marker). Removed `STATS_START_DATE` and made `START_DATE` = May 6, 2026 for both purposes.
 - Why: The two-date split made the calendar show March/April and early May as placeholder "clean" days that never actually counted toward any stat, which read as confusing/wrong ("more than 79 clean days but it doesn't show that"). Mike confirmed May 6 is what he considers the real start.
 - Date: 2026-07-27
+
+## Folded days sync from Notion, add-only
+- Decision: `api/sync-notion.js` reads Mike's Notion "Energy Tracker" database (ID hardcoded,
+  token in the `NOTION_TOKEN` env var) and upserts `folded: true` for every row whose Activities
+  multi-select contains "Masturbated". Runs daily via Vercel Cron (`0 11 * * *` UTC, about 5-6am
+  Central); `GET /api/sync-notion` runs it on demand and `?dry=1` lists dates without writing.
+- Why: Mike already logs this in Notion, so logging it again in /admin was double work and the site
+  had fallen behind (first run added 9 days, Oct 13 to Nov 9).
+- Add-only: never un-folds a day. Mike doesn't un-log days in Notion, and this keeps a Notion
+  outage or edit from erasing site history. Days marked by hand in /admin but not in Notion stay.
+- Rows with no Date are skipped and counted as `undated_rows` (2 on the first run).
+- No auth on the endpoint: it only copies Notion's answer onto the already-public calendar.
+- Rejected: Notion webhooks for instant updates.
+- Why rejected: needs a public webhook endpoint with signature checks, more moving parts than a
+  daily cron for one person logging once a day.
+- Date: 2026-11-12
