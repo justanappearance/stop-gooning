@@ -20,7 +20,7 @@ const CALENDAR_START = GOONING_START
 const EVENTS = [
   { label: 'Yellowstone', start: '2026-05-22', end: '2026-05-25' },
   { label: 'Guatemala with friends', start: '2026-06-10', end: '2026-06-14' },
-  { label: 'lifting injury', start: '2026-07-16', end: '2026-07-27', tabs: ['lifting'] },
+  { label: 'break after injury', start: '2026-07-16', end: '2026-07-27', tabs: ['lifting'] },
   { label: "Denver, sister's engagement", start: '2026-09-26', end: '2026-09-27' },
 ]
 
@@ -112,15 +112,17 @@ function renderCalendar({ tab, start, markers, cellClass }) {
       const cell = document.createElement('div')
       cell.className = 'day-cell'
       const status = date < start || date > today ? null : cellClass(dateStr, isToday)
-      cell.classList.add(status || 'empty')
+      cell.classList.add(...(status || 'empty').split(' '))
       if (isToday) cell.classList.add('today')
       if (markerStrs.has(dateStr)) cell.classList.add('start')
       const event = events.find(e => e.start <= dateStr && dateStr <= e.end)
-      if (event) {
+      // Only on days this tab tracks; a dot floating in a blank month reads as noise.
+      if (event && status) {
         cell.classList.add('event')
         cell.dataset.event = EVENTS.indexOf(event)
         cell.title = eventTitle(event)
       }
+      if (cell.classList.contains('injury')) cell.title = cell.title ? `injury · ${cell.title}` : 'injury'
       cell.innerHTML = `<span class="day-number">${day}</span>`
       gridEl.appendChild(cell)
     }
@@ -257,6 +259,8 @@ function cleanTracker({ url, start, markers, isBad, extraClass }) {
 // ---- Lifting ----
 
 const LIFT_CLASS = { 0.25: 'lift-1', 0.5: 'lift-2', 0.75: 'lift-3', 1: 'lift-4' }
+// Days Mike got hurt lifting, shown red on the lifting calendar whatever else was logged that day.
+const INJURY_DAYS = ['2026-07-12']
 
 const lifting = {
   load: () => fetchJSON('/api/lifting', {}),
@@ -280,6 +284,7 @@ const lifting = {
     renderCalendar({
       tab, start: LIFTING_START, markers: [LIFTING_START, LIFTING_RESTART],
       cellClass(dateStr, isToday) {
+        if (INJURY_DAYS.includes(dateStr)) return 'folded injury'
         if (shares[dateStr]) return LIFT_CLASS[shares[dateStr]]
         return isToday ? null : 'rest'
       },

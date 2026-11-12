@@ -95,3 +95,10 @@
   pulse (`highlightEvent` in app.js, delegated on the calendar). Legend entry is just "special event".
 - Why: Mike, 2026-11-12: wants to see which days belong together.
 - Date: 2026-11-12
+
+## July 12 marked as an injury day on the lifting calendar
+- Decision: `INJURY_DAYS` in app.js (currently 2026-07-12) are red on the lifting calendar, with an
+  "injury" legend entry and tooltip, overriding that day's logged workout. The Jul 16-27 event is
+  renamed "break after injury". Event dots now only appear on days the current tab tracks.
+- Why: Mike, 2026-11-12: the injury happened on July 12 and explains the break that followed.
+- Date: 2026-11-12
