@@ -20,7 +20,6 @@ const CALENDAR_START = GOONING_START
 const EVENTS = [
   { label: 'Yellowstone', start: '2026-05-22', end: '2026-05-25' },
   { label: "Cheef's Wedding", start: '2026-06-10', end: '2026-06-14' },
-  { label: 'break after injury', start: '2026-07-16', end: '2026-07-27', tabs: ['lifting'] },
   { label: "Tam's Engagement", start: '2026-09-26', end: '2026-09-27' },
 ]
 
