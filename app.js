@@ -5,7 +5,7 @@ const DAY_HEADERS = ['Su','Mo','Tu','We','Th','Fr','Sa']
 const GOONING_START = new Date(2026, 4, 6) // May 6, 2026
 const INTERNET_START = new Date(2026, 5, 30) // June 30, 2026 - stats count from here
 // Second internet start (Mike, 2026-11-12): marked on the calendar only; he didn't want separate stats.
-const INTERNET_RESTART = new Date(2026, 9, 20) // October 20, 2026
+const INTERNET_RESTART = new Date(2026, 9, 22) // October 22, 2026 - first clean day after Oct 13-21
 const LIFTING_START = new Date(2026, 5, 1) // June 1, 2026 - first "Lifting" tag in the Energy Tracker
 // Mike started logging partial workouts (1/4, 1/2, 3/4 Lifting) here; before it, every gym day
 // was plain "Lifting". Lifting stats and the bar graph count from here.
