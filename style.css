@@ -297,7 +297,6 @@ h1 {
 .day-cell.lift-3 { background: rgba(34, 197, 94, 0.8); }
 .day-cell.lift-4 { background: var(--green); }
 .day-cell.start { background: var(--blue); }
-.day-cell.start.folded { background: var(--red); }
 .day-cell.future { background: transparent; }
 .day-cell.empty { background: transparent; }
 .day-cell.start.empty { background: var(--blue); }

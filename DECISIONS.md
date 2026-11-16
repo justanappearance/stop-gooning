@@ -54,6 +54,10 @@
 - Decision: Oct 20 is marked on the internet calendar as a second start, with no separate stats.
 - Why: Mike, 2026-11-12, after trying a "since Oct 20" line: the all-time stats are enough.
 - Date: 2026-11-12
+- Update 2026-11-16: start dates are now always blue, even on a relapse day. Oct 20 is logged as
+  relapsed (Oct 13-21 all are), and the old `.day-cell.start.folded` red rule hid the marker
+  completely. Mike chose to keep Oct 20 and show it blue. The relapse still counts in the stats.
+  Rejected: moving the restart to Oct 22, the first clean day after that run.
 
 ## Fixed calendar, event markers, lifting chart from Nov 12, internet sync from Oct 6
 - Decision: one shared calendar that recolors per tab instead of a calendar per tab; `EVENTS`
