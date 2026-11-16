@@ -409,12 +409,21 @@ const TABS = {
   lifting,
   weight,
 }
+// Page heading and browser-tab title per tab (Mike, 2026-11-16).
+const TITLES = {
+  gooning: 'stop gooning',
+  internet: 'quitting the internet',
+  lifting: 'lifting tracker',
+  weight: 'weight tracker',
+}
 // Each tab's data is fetched once, on first view; switching back redraws from the cache.
 const loads = {}
 
 async function showTab() {
   const name = TABS[location.hash.slice(1)] ? location.hash.slice(1) : 'gooning'
   const tracker = TABS[name]
+  document.querySelector('header h1').textContent = TITLES[name]
+  document.title = TITLES[name]
   for (const link of document.querySelectorAll('.tabs a')) {
     link.classList.toggle('active', link.dataset.tab === name)
   }
